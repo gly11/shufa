@@ -11,42 +11,50 @@ headers = {
 }
 
 
-def postHTML(url, word, type, code="utf-8"):
+def postHTML(url, word, type, code="utf-8", time = 10):
     # search character
     data = {"keyboard": word, "sort": type}
     try:
-        r = requests.post(url, headers=headers, data=data)
+        r = requests.post(url, headers=headers, data=data, timeout=time)
         r.raise_for_status()
         r.encoding = code
         return r.text
     except requests.exceptions.HTTPError:
         print("Error: not 200 code. Code: 7")
         return ""
+    except requests.exceptions.ReadTimeout:
+        print(f" HTTPConnectionPool(host='{url}', port=80): Read timed out. (read timeout={time})")
     except:
         print("Error: failed to post. Code: 4 (Maybe Network Error.)")
         return ""
 
 
-def getHTML(url, code="utf-8"):
+def getHTML(url, code="utf-8", time = 10):
     try:
-        r = requests.get(url, headers=headers)
+        r = requests.get(url, headers=headers, timeout=time)
         r.raise_for_status()
         r.encoding = code
         return r.text
+    except requests.exceptions.HTTPError:
+        print("Error: not 200 code. Code: 9")
+        return ""
+    except requests.exceptions.ReadTimeout:
+        print(f" HTTPConnectionPool(host='{url}', port=80): Read timed out. (read timeout={time})")
     except:
-        print("Error: failded to get. Code: 5")
+        print("Error: failded to get. Code: 5 (Maybe Network Error.)")
+        print(f"url={url}")
         return ""
 
 
 def findPics(html):
     soup = BeautifulSoup(html, "html.parser")
     box = soup.find("div", {"class": "writer_box"})
-    pics = box.find_all("a", {"data-fancybox": "images"})
-    ch = box.find_all("p", {"class": "writer"})
+    ul = box.find('ul')
+    pics = ul.find_all("a")                        
+    ch = ul.find_all("p", {"class": "writer"})
     pics_list = []
     word_list = []
-    # pics = soup.find_all("src")
-    # print(len(pics))
+    
     for i in range(len(pics)):
         pics_list.append(pics[i]['href'])
         word_list.append(ch[i].string.split("（")[0])
@@ -68,15 +76,17 @@ def downPic(html):
         pics_list.append(pic_url)
         word_list.append(ch[i].string.split("（")[0])
         try:
-            pic = requests.get(pic_url).content
+            pic = requests.get(pic_url, timeout=10).content
             with open() as f:
                 f.close()
+        except requests.exceptions.ReadTimeout:
+            print(f" HTTPConnectionPool(host='{url}', port=80): Read timed out. (read timeout={time})")
         except:
             print("Download failed code: 6")
     return pics_list
 
 
-def findPages(html):
+def findPages(html, type='single_word'):
     soup = BeautifulSoup(html, "html.parser")
     try:
         pages = soup.find("div", {"class": "page"}).find_all('a')
@@ -84,24 +94,35 @@ def findPages(html):
         print("Error getting Pages: code 3.")
         print(soup)
 
-    try:
-        url_family = pages[-1]['href']
-        last_page = url_family.split('-')
-    except:
-        last_page = 0
-        print("No more than one page.")
+    if type == 'single_word':
+        try:
+            url_family = pages[-1]['href']
+            last_page = url_family.split('-')
+        except:
+            last_page = 0
+            print("No more than one page.")
+    elif type == 'home':
+        try:
+            url_family = pages[-1]['href']
+            last_page = url_family.split('_')
+        except:
+            last_page = 0
+            print("No more than one page.")
+    else:
+        assert("Wrong type. Error!")
     return last_page
 
 
-def getPicList(html, homeurl, number, pic_path, csv_path, number_per_page=24):
+def singleWordDownload(html, homeurl, number, pic_path, csv_path, number_per_page=24):
     last_page = findPages(html)
-    if last_page != 0:
+    print(last_page)
+    if last_page != 0:      
+        # 不止一页的情形，构建页面列表
         max = last_page[1].split('.')[0]
-        page_list = [last_page[0] + '.html']
+        page_list = [f"{homeurl}{last_page[0]}.html"]
 
         for i in range(2, int(max) + 1):
-            url_i = last_page[0] + '-' + str(i) + '.html'
-            # print(url_i)
+            url_i = f"{homeurl}{last_page[0]}-{i}.html"
             page_list.append(url_i)
         # print(page_list)
         for page in page_list:
@@ -115,10 +136,12 @@ def getPicList(html, homeurl, number, pic_path, csv_path, number_per_page=24):
                     print("IndexError: code: 8.1")
                 except:
                     print("failed code: 2.1")
-                # data_dict[str(number - 1)] = word_list[number - 1]
+
+                # print(number)
+                # data_dict[str(number - 1)] = word_list[number - 2]
     else:
         pics_list, word_list = findPics(html)
-        # pic_dict.update(dict.fromkeys(pics_list,word))
+        
         for pic in pics_list:
             try:
                 number = downloadPic(pic, pic_path, number, csv_path, word_list[number - 1])
@@ -127,15 +150,17 @@ def getPicList(html, homeurl, number, pic_path, csv_path, number_per_page=24):
                 print("IndexError: code: 8.2")
             except:
                 print("failed code: 2.2")
-            # data_dict[str(number - 1)] = word_list[number - 1]
+            # print(number)
+            # data_dict[str(number - 1)] = word_list[number - 2]
 
     # print(len(pic_dict))
     # return pic_dict
+    return number
 
 
 def downloadPic(pic_url, pic_path, number, csv_path, word):
     try:
-        pic = requests.get(pic_url).content
+        pic = requests.get(pic_url, timeout=10).content
         with open(f"{pic_path}{str(number)}.{pic_url.split('.')[-1]}", 'wb') as f:
             f.write(pic)
             f.close()
@@ -144,6 +169,8 @@ def downloadPic(pic_url, pic_path, number, csv_path, word):
             w.writerow([number, word])
             f.close()
         number += 1
+    except requests.exceptions.ReadTimeout:
+        print(f" HTTPConnectionPool(host='{url}', port=80): Read timed out. (read timeout={time})")
     except:
         print("Download failed code: 1")
     return number
@@ -189,19 +216,93 @@ def search(word, homeurl, pic_path, csv_path):
 
     html = postHTML(search_url, word, type=52)
     # data_dict = {}
-    getPicList(html, homeurl, number, pic_path, csv_path)
+    singleWordDownload(html, homeurl, number, pic_path, csv_path)
+
+
+def countAll(homeurl, type='kaishu'):
+    url = f'{homeurl}/{type}/'
+    html = getHTML(url)
+
+    # 构建页面列表
+    last_page = findPages(html, type='home')     # 读取总页面数
+    # print(last_page)
+    max = last_page[1].split('.')[0]
+    page_list = [f"{homeurl}{last_page[0]}.html"]
+
+    for i in range(2, int(max) + 1):
+        url_i = f"{homeurl}{last_page[0]}_{i}.html"
+        page_list.append(url_i)
+    # print(page_list[:2]) 
+    word_list = []
+    
+    for page in page_list[:2]:
+        page_html = getHTML(page)      # 楷书的某一页
+        word_list += findPics(page_html)[0]
+    
+    count = 0
+    no = 0
+    for word_page in word_list:
+        no += 1
+        count = countWord(homeurl + word_page, count, no)
+    print(count)
+
+
+def countWord(url, count, no):
+    html = getHTML(url)
+    soup = BeautifulSoup(html, "html.parser")
+    ch = soup.find_all("p", {"class": "writer"})
+    div = soup.find('div', {'class':'page'})
+    # print(div)
+    b = div.find('b')
+    if b == None:
+        number = len(ch)
+    else:
+        number = int(b.string)
+    count += number
+    print(f"{ch[0].string.split('（')[0]}({no}):{number}/{count}")
+
+    return count
+
+
+
+def spiderAll(homeurl, pic_path, csv_path, type='kaishu'):
+    url = f'{homeurl}/{type}/'
+    html = getHTML(url)
+
+    # 构建页面列表
+    last_page = findPages(html, type='home')     # 读取总页面数
+    # print(last_page)
+    max = last_page[1].split('.')[0]
+    page_list = [f"{homeurl}{last_page[0]}.html"]
+
+    for i in range(2, int(max) + 1):
+        url_i = f"{homeurl}{last_page[0]}_{i}.html"
+        page_list.append(url_i)
+    # print(page_list[:2]) 
+    number = 1
+    for word_page in page_list[:2]:
+        word_html = getHTML(word_page)
+        
+
+
+
+
+
 
 
 def main():
-    homeurl = 'http://www.jidajia.com'
+    homeurl = 'http://www.jidajia.com'      # 末尾不加 '/' !!!
     pic_path = './img/'
     csv_path = './csv/'
     word = '芋'
 
-    setDir(pic_path, _del=True)
-    setDir(csv_path)
-    initCSV(csv_path, 'data.csv')
-    search(word, homeurl, pic_path, csv_path)
+    # setDir(pic_path, _del=True)
+    # setDir(csv_path)
+    # initCSV(csv_path, 'data.csv')
+    # search(word, homeurl, pic_path, csv_path)
+    # spiderAll(homeurl, pic_path, csv_path)
+    countAll(homeurl)
+
 
 
 if __name__ == "__main__":
