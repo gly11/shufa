@@ -36,12 +36,12 @@ def getHTML(url, code="utf-8", time=10):
         r.encoding = code
         return r.text
     except requests.exceptions.HTTPError:
-        print("Error: not 200 code. Code: 9")
+        print("getHTML() Error: not 200 code. Code: 9")
     except requests.exceptions.ReadTimeout:
-        print(f"Timeout: {url} (read timeout={time})")
+        print(f"getHTML() Timeout: {url} (read timeout={time})")
         return "timeout"
     except Exception as err:
-        print(f"Error: failded to get. Code: 5 (Maybe Network Error.)\nurl={url}\n错误信息：{err}")
+        print(f"getHTML() Error: failded to get. Code: 5 (Maybe Network Error.)\nurl={url}\n错误信息：{err}")
 
 
 def findPics(html):
@@ -58,31 +58,6 @@ def findPics(html):
         word_list.append(ch[i].string.split("（")[0])
     # print(word_list)
     return pics_list, word_list
-
-
-# def downPic(html, time=10):
-#     soup = BeautifulSoup(html, "html.parser")
-#     box = soup.find("div", {"class": "writer_box"})
-#     pics = box.find_all("a", {"data-fancybox": "images"})
-#     ch = box.find_all("p", {"class": "writer"})
-#     pics_list = []
-#     word_list = []
-#     # pics = soup.find_all("src")
-#     # print(len(pics))
-#     for i in range(len(pics)):
-#         pic_url = pics[i]['href']
-#         pics_list.append(pic_url)
-#         word_list.append(ch[i].string.split("（")[0])
-#         try:
-#             pic = requests.get(pic_url, timeout=time).content
-#             with open() as f:
-#                 f.close()
-#         except requests.exceptions.ReadTimeout:
-#             print(f"{pic_url}' (read timeout={time})")
-#             return ""
-#         except Exception as err:
-#             print(f"Download failed code: 6\n错误信息：{err}")
-#     return pics_list
 
 
 def findPages(html, type='single_word'):
@@ -114,11 +89,12 @@ def singleWordDownload(html, no, number_per_page=24, num_i=0):
     last_page = findPages(html)
     if last_page != 0:
         # 不止一页的情形，构建页面列表
+        # print(last_page)
         max = last_page[1].split('.')[0]
-        page_list = [f"{homeurl}{last_page[0]}.html"]
+        page_list = [f"{last_page[0]}.html"]
 
         for i in range(2, int(max) + 1):
-            url_i = f"{homeurl}{last_page[0]}-{i}.html"
+            url_i = f"{last_page[0]}-{i}.html"
             page_list.append(url_i)
         # print(page_list)
         for page in page_list:
@@ -127,7 +103,6 @@ def singleWordDownload(html, no, number_per_page=24, num_i=0):
             for pic in pics_list:
                 try:
                     no, num_i = downloadPic(pic, no, num_i, word_list[num_i % number_per_page])
-                    print(f"#{(no - 1):3d}  succeeded.")
                 except IndexError:
                     print("IndexError: code: 8.1")
                 except Exception as err:
@@ -141,7 +116,6 @@ def singleWordDownload(html, no, number_per_page=24, num_i=0):
         for pic in pics_list:
             try:
                 no, num_i = downloadPic(pic, no, num_i, word_list[num_i])
-                print(f"#{(no - 1):3d}  succeeded.")
             except Exception as err:
                 print(f"Error: failed code: 2.2\n错误信息：{err}")
                 exit()
@@ -159,16 +133,16 @@ def downloadPic(pic_url, no, num_i, word, time=10):
         with open(f"{pic_path}{str(no)}.{pic_url.split('.')[-1]}", 'wb') as f:
             f.write(pic)
             f.close()
-
         writeCSV([no, word], csv_name='data')
-
+        print(f"#{no :3d}  succeeded.")
         no += 1
         num_i += 1
     except requests.exceptions.ReadTimeout:
         print(f"{pic_url}' (read timeout={time})")
-        return ""
+        writeCSV([pic_url, 'timeout'], 'download_error')
     except Exception as err:
         print(f"Download failed code: 1\n错误信息：{err}")
+        writeCSV([pic_url, 'timeout'], err)
     return no, num_i
 
 
@@ -180,7 +154,7 @@ def writeCSV(rows, csv_name):
 
 
 def initCSV(name, title):
-    with open(csv_path + name, 'w') as f:
+    with open(csv_path + name + '.csv', 'w') as f:
         w = csv.writer(f)
         w.writerow(title)
         f.close()
@@ -229,7 +203,7 @@ def spiderAll(homeurl, type='kaishu', __mode__='count'):
     # print(page_list[:2]) 
     word_list = []
 
-    for page in page_list[:1]:
+    for page in page_list:
         page_html = getHTML(page)  # 楷书的某一页
         word_list += findPics(page_html)[0]
 
@@ -237,15 +211,16 @@ def spiderAll(homeurl, type='kaishu', __mode__='count'):
     no = 1
 
     if __mode__ == 'count':
-        initCSV('words_count.csv', title=['word', 'count'])
-        initCSV('error_words.csv', title=['url', '原因'])
+        initCSV('words_count', title=['word', 'count'])
+        initCSV('error_words', title=['url', '原因'])
         for word_page in word_list:
             count, no = countWord(homeurl + word_page, count, no)
         print(count)
 
     elif __mode__ == 'download':
-        initCSV('data.csv', title=['name', 'word'])
-        for word_page in word_list[:2]:
+        initCSV('data', title=['name', 'word'])
+        initCSV('download_error', title=['url', 'reason'])
+        for word_page in word_list:
             # print(word_page)
             word_html = getHTML(homeurl + word_page)
             no = singleWordDownload(word_html, no)
@@ -290,8 +265,9 @@ def main():
     # setDir(_del=True)
     # setDir()
     # search(word, homeurl)
-    # spiderAll(homeurl)
-    spiderAll(homeurl, __mode__="download")
+
+    spiderAll(homeurl)
+    # spiderAll(homeurl, __mode__="download")
 
 
 if __name__ == "__main__":
