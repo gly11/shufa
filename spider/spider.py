@@ -12,7 +12,7 @@ headers = {
     'Accept-Language': 'zh-CN,zh;q=0.9',
 }
 
-time = 1
+time = 20
 
 
 def postHTML(url, word, _type, code="utf-8"):
@@ -145,7 +145,7 @@ def downloadPic(pic_url, no, num_i, word):
             f.write(pic)
             f.close()
         writeCSV([no, word], csv_name='data')
-        print(f"#{no :3d}  succeeded.")
+        print(f"#{no :3d}({word})  succeeded.")
         no += 1
         num_i += 1
     except requests.exceptions.ReadTimeout:
@@ -219,7 +219,7 @@ def spiderAll(homeurl, type='kaishu', __mode__='count', __from__=''):
 
             word_list = []
             i = 1
-            for page in page_list[:2]:
+            for page in page_list:
                 print(f"Reading page {i:3d}/{int(max) + 1}.", end="")
                 page_html = getHTML(page)  # 楷书的某一页
                 # if page_html != 'timeout':
@@ -243,10 +243,11 @@ def spiderAll(homeurl, type='kaishu', __mode__='count', __from__=''):
                 print(f"{count} in total!")
 
             elif __mode__ == 'download':
-                initCSV('data', title=['name', 'word'])
+                initCSV('data', title=['No.', 'Word'])
                 initCSV('download_error', title=['url', 'reason'])
+                i = 1
                 for word_page in word_list:
-                    print(f"Downloading page {i:3d}/{int(max) + 1}.", end="")
+                    print(f"Downloading word #{i}/{_all}.")
                     word_url = homeurl + word_page
                     word_html = getHTML(word_url)
                     try:
