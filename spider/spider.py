@@ -9,10 +9,11 @@ headers = {
                   "Chrome/103.0.0.0 Safari/537.36",
     "Content-Type": "application/x-www-form-urlencoded",
     "Cookies": "",
-    'Accept-Language':'zh-CN,zh;q=0.9',
+    'Accept-Language': 'zh-CN,zh;q=0.9',
 }
 
-time = 10
+time = 1
+
 
 def postHTML(url, word, _type, code="utf-8"):
     # search character
@@ -28,7 +29,7 @@ def postHTML(url, word, _type, code="utf-8"):
         print(f"Timeout: {url} (read timeout={time})")
         return "timeout"
     except Exception as err:
-        print(f"Error: failed to post. Code: 4 (Maybe Network Error.)\n错误信息：{err}")
+        print(f"Error: failed to post. Code: 4 (Maybe Network Error.)\t错误信息：{err}")
 
 
 def getHTML(url, code="utf-8"):
@@ -38,13 +39,15 @@ def getHTML(url, code="utf-8"):
         r.encoding = code
         return r.text
     except requests.exceptions.HTTPError as err:
-        print("Getting HTML Error: not 200 code. Code: 9\nurl={url}\n错误信息：{err}")
+        print("Getting HTML Error: not 200 code. Code: 9\turl={url}\t错误信息：{err}")
         return 'not200'
     except requests.exceptions.ReadTimeout:
         print(f"Getting HTML  Timeout: {url} (read timeout={time}). Code: 10")
         return "timeout"
+    except requests.exceptions.ConnectionError as err:
+        print(f"Connection Error. Code: 12. Message: {err}")
     except Exception as err:
-        print(f"Getting HTML  Error: failded to get. Code: 5 (Maybe Network Error.)\nurl={url}\n错误信息：{err}")
+        print(f"Getting HTML  Error: failed to get. Code: 5 (Maybe Network Error.)\turl={url}\t错误信息：{err}")
 
 
 def findPics(html):
@@ -67,11 +70,11 @@ def findPages(html, type='single_word'):
     soup = BeautifulSoup(html, "html.parser")
     try:
         pages = soup.find("div", {"class": "page"}).find_all('a')
-    except Exception as err:
-        print(soup)
-        print(f"Error getting Pages: code 3.\n错误信息：{err}")
-
-    try:
+        # except Exception as err:
+        #     print(soup)
+        #     print(f"Error getting Pages: code 3.\t错误信息：{err}")
+        #
+        # try:
         url_family = pages[-1]['href']
         if type == 'single_word':
             last_page = url_family.split('-')
@@ -112,12 +115,12 @@ def singleWordDownload(html, no, number_per_page=24, num_i=0):
                     except IndexError:
                         print("IndexError: code: 8.1")
                     except Exception as err:
-                        print(f"Error: failed code: 2.1\n错误信息：{err}")
+                        print(f"Error: failed code: 2.1\t错误信息：{err}")
             except Exception as err:
-                writeCSV([page_url, f'Single Word Download read error: {err}'], 'read_error')
+                writeCSV([page_url, f'Single_Word_Download_read_error:{str(err).split(" ")[0]}'], 'read_error')
 
-                    # print(no)
-                    # data_dict[str(no - 1)] = word_list[no - 1 - 1]
+                # print(no)
+                # data_dict[str(no - 1)] = word_list[no - 1 - 1]
     else:
         pics_list, word_list = findPics(html)
 
@@ -125,7 +128,7 @@ def singleWordDownload(html, no, number_per_page=24, num_i=0):
             try:
                 no, num_i = downloadPic(pic, no, num_i, word_list[num_i])
             except Exception as err:
-                print(f"Error: failed code: 2.2\n错误信息：{err}")
+                print(f"Error: failed code: 2.2\t错误信息：{err}")
                 exit()
             # print(no)
             # data_dict[str(no - 1)] = word_list[no - 1 - 1]
@@ -149,8 +152,8 @@ def downloadPic(pic_url, no, num_i, word):
         print(f"{pic_url}' (read timeout={time})")
         writeCSV([pic_url, 'timeout'], 'download_error')
     except Exception as err:
-        print(f"Download failed code: 1\n错误信息：{err}")
-        writeCSV([pic_url, err], 'download_error')
+        print(f"Download failed code: 1\t错误信息：{err}")
+        writeCSV([pic_url, str(err).split(' ')[0]], 'download_error')
     return no, num_i
 
 
@@ -195,90 +198,94 @@ def search(word):
     return no
 
 
-def spiderAll(homeurl, type='kaishu', __mode__='count'):
+def spiderAll(homeurl, type='kaishu', __mode__='count', __from__=''):
     url = f'{homeurl}/{type}/'
     html = getHTML(url)
-    initCSV('read_error', ['url', 'reason'])
+    if __from__ == '':
+        initCSV('read_error', ['URL', 'Reason'])
+        initCSV('pages', ['Page', 'URL', 'Status', 'Remark'])
 
-    try:
-        # 构建页面列表
-        last_page = findPages(html, type='home')  # 读取总页面数
-        # print(last_page)
-        max = last_page[1].split('.')[0]
-        page_list = [f"{homeurl}{last_page[0]}.html"]
-    
-        for i in range(2, int(max) + 1):
-            url_i = f"{homeurl}{last_page[0]}_{i}.html"
-            page_list.append(url_i)
-        # print(page_list[:2]) 
-        word_list = []
-        i = 1
-        for page in page_list:
-            print(f"Reading page {i:3d}/{int(max)+1}.", end="")
-            i += 1
-            page_html = getHTML(page)  # 楷书的某一页
-            # if page_html != 'timeout':
-            try:
-                word_list += findPics(page_html)[0]
-                print(f"{'.'*10}Success!")
-            except Exception as err:
-                print(f"{'.'*10}Failed! Error: {err}")
-                writeCSV([page, f'Reading page error: {err}'], 'read_error')
-    
-        count = 0
-        no = 1
-        i = 1
-    
-        if __mode__ == 'count':
-            initCSV('words_count', title=['word', 'count'])
-            initCSV('error_words', title=['url', '原因'])
-            for word_page in word_list:
-                print(f"Reading page {i:3d}/{int(max)+1}.", end="")
-                count, no = countWord(homeurl + word_page, count, no)
-                i += 1
-            print(f"{count} in total!")
-    
-        elif __mode__ == 'download':
-            initCSV('data', title=['name', 'word'])
-            initCSV('download_error', title=['url', 'reason'])
-            for word_page in word_list:
-                print(f"Downloading page {i:3d}/{int(max)+1}.", end="")
-                word_url = homeurl + word_page
-                word_html = getHTML(word_url)
+        try:
+            # 构建页面列表
+            last_page = findPages(html, type='home')  # 读取总页面数
+            _all, _ = find_number_of_page(html)  # 读取总字数
+            # print(last_page)
+            max = last_page[1].split('.')[0]
+            page_list = [f"{homeurl}{last_page[0]}.html"]
+
+            for i in range(2, int(max) + 1):
+                url_i = f"{homeurl}{last_page[0]}_{i}.html"
+                page_list.append(url_i)
+
+            word_list = []
+            i = 1
+            for page in page_list[:2]:
+                print(f"Reading page {i:3d}/{int(max) + 1}.", end="")
+                page_html = getHTML(page)  # 楷书的某一页
+                # if page_html != 'timeout':
                 try:
-                    no = singleWordDownload(word_html, no)
+                    word_list += findPics(page_html)[0]
+                    print(f"{'.' * 10}Success!")
+                    writeCSV([f'Page {i}', page, 'Success'], 'pages')
                 except Exception as err:
-                    print(f"Download Error. Code 12. Message: {err}")
-                    writeCSV([word_url, f'Reading word error: {err}'], 'read_error')
+                    print(f"{'.' * 10}Failed! Error: {err}")
+                    writeCSV([f'Page {i}', page, 'Failed', str(err).split(' ')[0]], 'pages')
                 i += 1
-    except Exception as err:
-        print(f"Error code: 11. Message: {err}")
-        writeCSV([url, 'timeout'], 'read_error')
+
+            count = 0
+            no = 1
+
+            if __mode__ == 'count':
+                initCSV('words_count', title=['word', 'count', 'url'])
+                initCSV('error_words', title=['url', 'Reason'])
+                for word_page in word_list:
+                    count, no = countWord(homeurl + word_page, count, no, _all)
+                print(f"{count} in total!")
+
+            elif __mode__ == 'download':
+                initCSV('data', title=['name', 'word'])
+                initCSV('download_error', title=['url', 'reason'])
+                for word_page in word_list:
+                    print(f"Downloading page {i:3d}/{int(max) + 1}.", end="")
+                    word_url = homeurl + word_page
+                    word_html = getHTML(word_url)
+                    try:
+                        no = singleWordDownload(word_html, no)
+                    except Exception as err:
+                        print(f"Download Error. Code 12. Message: {err}")
+                        writeCSV([word_url, f'Reading_word_error:{str(err).split(" ")[0]}'], 'read_error')
+                    i += 1
+        except Exception as err:
+            print(f"Error code: 11. Message: {err}")
+            writeCSV([url, f'Error11:{str(err).split(" ")[0]}'], 'read_error')
 
 
+def find_number_of_page(html):
+    soup = BeautifulSoup(html, "html.parser")
+    ch = soup.find_all("p", {"class": "writer"})
+    div = soup.find('div', {'class': 'page'})
+    # print(div)
+    b = div.find('b')
+    if b is None:
+        number = len(ch)
+    else:
+        number = int(b.string)
+    return number, ch
 
-def countWord(url, count, no):
+
+def countWord(url, count, no, _all):
     html = getHTML(url)
     try:
-        soup = BeautifulSoup(html, "html.parser")
-        ch = soup.find_all("p", {"class": "writer"})
-        div = soup.find('div', {'class': 'page'})
-        # print(div)
-        b = div.find('b')
-        if b == None:
-            number = len(ch)
-        else:
-            number = int(b.string)
+        number, ch = find_number_of_page(html)
         count += number
-        word = f"{ch[0].string.split('（')[0]}({no})"
+        word = f"{ch[0].string.split('（')[0]}({no}/{_all})"
         row2 = f"{number}/{count}"
         print(f"{word}:{row2}")
-        writeCSV([word, row2], 'words_count')
+        writeCSV([word, row2, url], 'words_count')
         no += 1
     except Exception as err:
-        print(url)
-        print(f"url:{url}\n异常信息：{err}")
-        writeCSV([url, err], 'error_words')
+        print(f"url:{url}\t异常信息：{err}")
+        writeCSV([url, str(err).split(' ')[0]], 'error_words')
     return count, no
 
 
