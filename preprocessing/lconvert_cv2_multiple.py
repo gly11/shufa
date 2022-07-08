@@ -25,7 +25,7 @@ def re_name(path):
         except:
             continue
     
-def gray_pic(path,path_save):
+def gray_pic(path):
     files = os.listdir(path)
     for file in enumerate(files):
         try:
@@ -37,8 +37,6 @@ def gray_pic(path,path_save):
             #将灰度图像二值化，设定阈值为100
             img_thre = gray
             cv2.threshold(gray,100,255,cv2.THRESH_BINARY_INV,img_thre)
-            cv2.imshow('threshold',img_thre)
-            cv2.waitKey(0)
 
             #保存黑白图片
             cv2.imwrite(path + "\\" + str(file[1]), gray)
@@ -90,14 +88,58 @@ def gray_pic(path,path_save):
                 n = end 
                 if end - start >5:
                     cj = img_thre[1:height, start:end]
-                    cv2.imwrite(path_save)
+                    cv2.imwrite(path)
         except:
             continue
 
 path = r'C:\Pywork\shufa1\test_cv2'
-path_save = r'C:/Pywork/shufa1/test_colorconvert'
 #re_name(path)
 try:
-    gray_pic(path,path_save)
-except:
-    print('error!')
+    gray_pic(path)        #实现灰度转换
+
+    #将黑底白字转换为白底黑字
+    nn = 1
+    str_name1 = 'cut'
+    str_name3 = '.png'
+    rootdir = r'C:\Pywork\shufa1\test_cv2'
+    for parent, dirnames, filenames in os.walk(rootdir):
+        for filename in filenames:
+            print('parent is :' , parent)
+            print('filename is :' , filename)
+            currentPath = os.path.join(parent, filename)
+            print('THe full filename is:' , currentPath)
+            image = cv2.imread(currentPath)           #打开当前文件夹中图片
+            #计算白色和黑色像素分别的总和
+            white1 = []          #记录每一列的白色像素总和
+            black1 = []          #....黑色...
+            height1 = image.shape[0]
+            width1 = image.shape[1]
+            white_max1 = 0
+            black_max1 = 0
+
+                #计算图像的黑白色像素总和
+            for i in range(width1):
+                s = 0   #这一列的白色总数
+                t = 0   #这一列的黑色总数
+                for j in range(height1):
+                    if image[j,i] == 255:      #在此处需要弄清楚为什么image[j][i] == 255不能表示像素
+                        s += 1
+                    if  image[j,i] == 0:
+                        t += 1
+                    white_max = max(white_max1,s)
+                    black_max = max(black_max,t)
+                    white1.append(s)
+                    black1.append(t)
+                print(s)
+                print(t)
+
+                #将黑底白字的图片转换为白底黑字的图片
+            if white_max  < black_max :
+                image2=cv2.bitwise_not(image)
+                dizhi = r'C:\Pywork\shufa1\test_cv2'
+                dizhi = dizhi + str_name1 + str(nn) + str_name3
+                cv2.imwrite(dizhi, image2)
+            nn = 1
+
+except Exception as err:
+    print(f'Error! Info: {err}')
