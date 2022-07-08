@@ -171,7 +171,7 @@ def initCSV(name, title):
         f.close()
 
 
-def setDir(filepath, _del=False):
+def setDir(filepath, _del=False, file=''):
     """
     如果文件夹不存在就创建，如果文件存在就清空！
     :param filepath:需要创建的文件夹路径
@@ -183,6 +183,10 @@ def setDir(filepath, _del=False):
         if _del:
             shutil.rmtree(filepath)
             os.mkdir(filepath)
+            if file != '':
+                with open(filepath+file, 'w') as f:
+                    f.write('file here.')
+                    f.close()
         else:
             pass
 
@@ -298,11 +302,11 @@ csv_path = './csv_files/'
 def main():
     word = '芋'
 
-    # setDir(_del=True)
-    # setDir()
+    setDir(pic_path, _del=True, file='.pnghere.md')
+    # setDir(csv_path)
     # search(word, homeurl)
 
-    spiderAll(homeurl)
+    # spiderAll(homeurl)
     # spiderAll(homeurl, __mode__="download")
 
 
