@@ -3,7 +3,6 @@ import shutil
 import requests
 from bs4 import BeautifulSoup
 import os
-# import pandas as pd
 
 headers = {
     "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) "
@@ -203,26 +202,6 @@ def search(word):
     return no
 
 
-def find_words(page_list):
-    word_list = []
-    i = 1
-    _max = len(page_list)
-    for page in page_list:
-        print(f"Reading page {i:3d}/{_max}.", end="")
-        page_html = getHTML(page)  # 楷书的某一页
-        # if page_html != 'timeout':
-        page_number = page.split('_')[1].split('.')[0]
-        try:
-            word_list += findPics(page_html)[0]
-            print(f"{'.' * 10}Success!")
-            writeCSV([f'Page {page_number}', page, 'Success'], 'pages')
-        except Exception as err:
-            print(f"{'.' * 10}Failed! Error: {err}")
-            writeCSV([f'Page {page_number}', page, 'Failed', str(err).split(' ')[0]], 'pages')
-        i += 1
-    return word_list
-
-
 def spiderAll(homeurl, type='kaishu', __mode__='count', __from__=''):
     url = f'{homeurl}/{type}/'
     html = getHTML(url)
@@ -235,17 +214,31 @@ def spiderAll(homeurl, type='kaishu', __mode__='count', __from__=''):
             last_page = findPages(html, type='home')  # 读取总页面数
             _all, _ = find_number_of_page(html)  # 读取总字数
             # print(last_page)
-            _max = last_page[1].split('.')[0]
+            max = last_page[1].split('.')[0]
             page_list = [f"{homeurl}{last_page[0]}.html"]
 
-            for i in range(2, int(_max) + 1):
+            for i in range(2, int(max) + 1):
                 url_i = f"{homeurl}{last_page[0]}_{i}.html"
                 page_list.append(url_i)
 
-            word_list = find_words(page_list)
+            word_list = []
+            i = 1
+            for page in page_list:
+                print(f"Reading page {i:3d}/{int(max) + 1}.", end="")
+                page_html = getHTML(page)  # 楷书的某一页
+                # if page_html != 'timeout':
+                try:
+                    word_list += findPics(page_html)[0]
+                    print(f"{'.' * 10}Success!")
+                    writeCSV([f'Page {i}', page, 'Success'], 'pages')
+                except Exception as err:
+                    print(f"{'.' * 10}Failed! Error: {err}")
+                    writeCSV([f'Page {i}', page, 'Failed', str(err).split(' ')[0]], 'pages')
+                i += 1
 
             count = 0
             no = 1
+
             if __mode__ == 'count':
                 initCSV('words_count', title=['word', 'count', 'url'])
                 initCSV('error_words', title=['url', 'Reason'])
@@ -267,30 +260,9 @@ def spiderAll(homeurl, type='kaishu', __mode__='count', __from__=''):
                         print(f"Download Error. Code 12. Message: {err}")
                         writeCSV([word_url, f'Reading_word_error:{str(err).split(" ")[0]}'], 'read_error')
                     i += 1
-            elif __mode__ == 'record':
-                initCSV("wordlist_all", ['URL', 'Status'])
-                for word_page in word_list:
-                    word_url = homeurl + word_page
-                    writeCSV([word_url, 'N'], 'wordlist_all')
         except Exception as err:
             print(f"Error code: 11. Message: {err}")
             writeCSV([url, f'Error11:{str(err).split(" ")[0]}'], 'read_error')
-    elif __from__ == 'local':
-        if __mode__ == 'fix_page':
-            with open(csv_path+'pages.csv', 'r+') as f:
-                reader = csv.reader(f)
-                # failed_pages = [row for row in reader if row[2] == 'Failed']
-                failed_pages = []
-                for row in reader:
-                    if row[2] == 'Failed':
-                        row[2] = 'Retried'
-                        failed_pages.append(row[1])
-                f.close()
-            word_list = find_words(failed_pages)
-            for word_page in word_list:
-                word_url = homeurl + word_page
-                writeCSV([word_url, 'N'], 'wordlist_all')
-
 
 
 def find_number_of_page(html):
@@ -328,16 +300,14 @@ csv_path = './csv_files/'
 
 
 def main():
-    # word = '芋'
+    word = '芋'
 
-    # setDir(pic_path, _del=True, file='.pnghere.md')
+    setDir(pic_path, _del=True, file='.pnghere.md')
     # setDir(csv_path)
     # search(word, homeurl)
 
     # spiderAll(homeurl)
     # spiderAll(homeurl, __mode__="download")
-    # spiderAll(homeurl, __mode__="record")
-    spiderAll(homeurl, __mode__='fix_page', __from__='local')
 
 
 if __name__ == "__main__":
