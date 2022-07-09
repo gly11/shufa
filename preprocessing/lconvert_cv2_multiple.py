@@ -4,6 +4,8 @@ import os
 from tqdm import tqdm
 import cv2
 from skimage import io
+from PIL import Image
+import numpy as np
 
 #import os
 path = r"C:/Pywork/shufa1/test_cv2/" #path后面记得加 /
@@ -53,7 +55,7 @@ def gray_pic(path):
             for i in range(width):
                 s = 0   #这一列的白色总数
                 t = 0   #这一列的黑色总数
-                for i in range(height):
+                for j in range(height):
                     if img_thre[j][i] == 255:
                         s += 1
                     if  img_thre[j][i] == 0:
@@ -62,8 +64,6 @@ def gray_pic(path):
                     black_max = max(black_max,t)
                     white.append(s)
                     black.append(t)
-                print(s)
-                print(t)
             arg = False #False表示白底黑字；True表示黑底白字
             if black_max > white_max:
                 arg = True
@@ -108,37 +108,41 @@ try:
             print('filename is :' , filename)
             currentPath = os.path.join(parent, filename)
             print('THe full filename is:' , currentPath)
-            image = cv2.imread(currentPath)           #打开当前文件夹中图片
-            #计算白色和黑色像素分别的总和
-            white1 = []          #记录每一列的白色像素总和
-            black1 = []          #....黑色...
-            height1 = image.shape[0]
-            width1 = image.shape[1]
-            white_max1 = 0
-            black_max1 = 0
+            image = Image.open(currentPath)           #打开当前文件夹中图片
+            #计算二值化后的图片黑白像素点以判断转换后的图片是黑底白字还是白底黑字
+            rgb_start = image.getcolors()[0]
+            rgb_end  = image.getcolors()[-1]
+            rgb_start_color, rgb_end_color = rgb_start[1], rgb_end[1]
+            rgb_start_int, rgb_end_int = rgb_start[0], rgb_end[0]
 
-                #计算图像的黑白色像素总和
-            for i in range(width1):
-                s = 0   #这一列的白色总数
-                t = 0   #这一列的黑色总数
-                for j in range(height1):
-                    if image[j,i] == 255:      #在此处需要弄清楚为什么image[j][i] == 255不能表示像素
-                        s += 1
-                    if  image[j,i] == 0:
-                        t += 1
-                    white_max = max(white_max1,s)
-                    black_max = max(black_max,t)
-                    white1.append(s)
-                    black1.append(t)
-                print(s)
-                print(t)
+            print(rgb_start, rgb_end)
+            if rgb_start_int > rgb_end_int:
+                if rgb_start_color == 0 or rgb_start_color == (0, 0, 0):    #判断是否是黑底白字，并改为白底黑字
+                    #将黑底白字的图片转换为白底黑字的图片
 
-                #将黑底白字的图片转换为白底黑字的图片
-            if white_max  < black_max :
-                image2=cv2.bitwise_not(image)
-                dizhi = r'C:\Pywork\shufa1\test_cv2'
-                dizhi = dizhi + str_name1 + str(nn) + str_name3
-                cv2.imwrite(dizhi, image2)
+                        #将Image对象转换成cv2可处理对象
+                    re_img = np.asanyarray(image)        
+                    re_img = re_img[:, :, [2, 1, 0]]   #将RGB->BGR
+                    image2 = cv2.bitwise_not(re_img)
+                    dizhi = r'C:\Pywork\shufa1\test_cv2'
+                    dizhi = dizhi + str_name1 + str(nn) + str_name3
+                    cv2.imwrite(dizhi, image2)
+                    print("白底黑字 %s" % rgb_start_int)
+                    print("{}为黑底白字图片，已修改完成为白底黑字图片", filename)
+            else:
+                if rgb_start_color == 255 or rgb_start_color == (255, 255, 255):    #判断是否是白底黑字
+
+                    #将Image对象转换成cv2可处理对象
+                    re_img = np.asanyarray(image)        
+                    re_img = re_img[:, :, [2, 1, 0]]   #将RGB->BGR
+
+                    #反转图像
+                    image2=cv2.bitwise_not(re_img)
+                    dizhi = r'C:\Pywork\shufa1\test_cv2'
+                    dizhi = dizhi + str_name1 + str(nn) + str_name3
+                    cv2.imwrite(dizhi, image2)
+                    print("白底黑字 %s" % rgb_start_int)
+
             nn = 1
 
 except Exception as err:
