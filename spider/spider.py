@@ -304,7 +304,7 @@ def spider_all(homeurl, _type='kaishu', __mode__=__count__, __from__='', __init=
             else:
                 df = pd.read_csv(csv_path + 'words_count.csv')
                 tail = df.tail(1)
-                no = tail.index.start
+                no = tail.index.stop + 1
                 count = int(tail['count'].values[0].split("/")[1])
 
             df = pd.read_csv(csv_path + 'wordlist_all.csv')
