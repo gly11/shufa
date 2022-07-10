@@ -8,7 +8,7 @@ from PIL import Image
 import numpy as np
 
 #import os
-path = r"./test_cv2" #path后面记得加 /
+path = r"./test_cv2/" #path后面记得加 /
 #西瓜6的代码
 fileList = os.listdir(path)
 for i in tqdm(fileList):
@@ -101,7 +101,7 @@ try:
     nn = 1
     str_name1 = 'cut'
     str_name3 = '.png'
-    rootdir = r'.\test_cv2'
+    rootdir = r'./test_cv2'
     for parent, dirnames, filenames in os.walk(rootdir):
         for filename in filenames:
             print('parent is :' , parent)
@@ -124,22 +124,21 @@ try:
                     image.close() 
                     image = cv2.imread(currentPath)   
                     image2 = cv2.bitwise_not(image)
-                    dizhi = r'.\test_cv2'           #保存地址
+                    dizhi = r'./test_cv2'           #保存地址
                     dizhi = dizhi + str_name1 + str(nn) + str_name3
                     cv2.imwrite(dizhi, image2)
                     print("白底黑字 %s" % rgb_start_int)
                     print("{}为黑底白字图片，已修改完成为白底黑字图片", filename)
-            else:
-                if rgb_start_color == 255 or rgb_start_color == (255, 255, 255):    #判断是否是白底黑字
-
-                    #将Image对象转换成cv2可处理对象
-                    image.close() 
-                    image = cv2.imread(currentPath)   
-                    image2 = cv2.bitwise_not(image)
-                    dizhi = r'.\test_cv2'
-                    dizhi = dizhi + str_name1 + str(nn) + str_name3
-                    cv2.imwrite(dizhi, image2)
-                    print("白底黑字 %s" % rgb_start_int)
+            #else:
+                # if rgb_start_color == 255 or rgb_start_color == (255, 255, 255):    #判断是否是白底黑字
+                #     #将Image对象转换成cv2可处理对象
+                #     image.close() 
+                #     image = cv2.imread(currentPath)   
+                #     image2 = cv2.bitwise_not(image)
+                #     dizhi = r'.\test_cv2'
+                #     dizhi = dizhi + str_name1 + str(nn) + str_name3
+                #     cv2.imwrite(dizhi, image2)
+                #     print("白底黑字 %s" % rgb_start_int)
 
             nn = 1
 
