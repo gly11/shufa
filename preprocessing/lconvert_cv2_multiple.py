@@ -8,7 +8,7 @@ from PIL import Image
 import numpy as np
 
 #import os
-path = r"C:/Pywork/shufa1/test_cv2/" #path后面记得加 /
+path = r"./test_cv2" #path后面记得加 /
 #西瓜6的代码
 fileList = os.listdir(path)
 for i in tqdm(fileList):
@@ -92,7 +92,7 @@ def gray_pic(path):
         except:
             continue
 
-path = r'C:\Pywork\shufa1\test_cv2'
+path = r'.\test_cv2'
 #re_name(path)
 try:
     gray_pic(path)        #实现灰度转换
@@ -101,7 +101,7 @@ try:
     nn = 1
     str_name1 = 'cut'
     str_name3 = '.png'
-    rootdir = r'C:\Pywork\shufa1\test_cv2'
+    rootdir = r'.\test_cv2'
     for parent, dirnames, filenames in os.walk(rootdir):
         for filename in filenames:
             print('parent is :' , parent)
@@ -121,10 +121,10 @@ try:
                     #将黑底白字的图片转换为白底黑字的图片
 
                         #将Image对象转换成cv2可处理对象
-                    re_img = np.asanyarray(image)        
-                    re_img = re_img[:, :, [2, 1, 0]]   #将RGB->BGR
-                    image2 = cv2.bitwise_not(re_img)
-                    dizhi = r'C:\Pywork\shufa1\test_cv2'
+                    image.close() 
+                    image = cv2.imread(currentPath)   
+                    image2 = cv2.bitwise_not(image)
+                    dizhi = r'.\test_cv2'           #保存地址
                     dizhi = dizhi + str_name1 + str(nn) + str_name3
                     cv2.imwrite(dizhi, image2)
                     print("白底黑字 %s" % rgb_start_int)
@@ -133,12 +133,10 @@ try:
                 if rgb_start_color == 255 or rgb_start_color == (255, 255, 255):    #判断是否是白底黑字
 
                     #将Image对象转换成cv2可处理对象
-                    re_img = np.asanyarray(image)        
-                    re_img = re_img[:, :, [2, 1, 0]]   #将RGB->BGR
-
-                    #反转图像
-                    image2=cv2.bitwise_not(re_img)
-                    dizhi = r'C:\Pywork\shufa1\test_cv2'
+                    image.close() 
+                    image = cv2.imread(currentPath)   
+                    image2 = cv2.bitwise_not(image)
+                    dizhi = r'.\test_cv2'
                     dizhi = dizhi + str_name1 + str(nn) + str_name3
                     cv2.imwrite(dizhi, image2)
                     print("白底黑字 %s" % rgb_start_int)
