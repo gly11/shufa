@@ -164,14 +164,14 @@ def download_pic(pic_url, no, num_i, word):
 
 
 def write_csv(rows, csv_name):
-    with open(f"{csv_path}{csv_name}.csv", 'a', newline='') as f:
+    with open(f"{csv_path}{csv_name}.csv", 'a', newline='', encoding='utf-8') as f:
         w = csv.writer(f)
         w.writerow(rows)
         f.close()
 
 
 def init_csv(name, title):
-    with open(csv_path + name + '.csv', 'w', newline='') as f:
+    with open(csv_path + name + '.csv', 'w', newline='', encoding='utf-8') as f:
         w = csv.writer(f)
         w.writerow(title)
         f.close()
@@ -296,26 +296,30 @@ def spider_all(homeurl, _type='kaishu', __mode__=__count__, __from__='', __init=
                 word_url = homeurl + word_page
                 write_csv([word_url, 'N'], 'wordlist_all')
         if __mode__ == __count__:
-            no = 1
-            count = 0
+            init_csv('error_words', title=['url', 'Reason'])
             if __init:
+                no = 1
+                count = 0
                 init_csv('words_count', title=['word', 'count', 'url'])
-                init_csv('error_words', title=['url', 'Reason'])
             else:
-                pass
+                df = pd.read_csv(csv_path + 'words_count.csv')
+                tail = df.tail(1)
+                no = tail.index.start
+                count = int(tail['count'].values[0].split("/")[1])
 
             df = pd.read_csv(csv_path + 'wordlist_all.csv')
-            _all = df.value_counts('Status')["N"]
+            # _all = df.value_counts('Status')["N"]
             for col in df.values:
                 if col[1] == 'N':
-                    count, no, status = count_word(col[0], count, no, _all)
+                    # count, no, status = count_word(col[0], count, no, _all)
+                    count, no, status = count_word(col[0], count, no, _all=df.value_counts('Status')["N"])
                     if status:
                         col[1] = 'Y'
                     else:
                         pass
                 else:
                     pass
-            df.to_csv(csv_path + 'wordlist_all_new.csv', index=False, encoding='utf-8-sig')
+            df.to_csv(csv_path + 'wordlist_all.csv', index=False, encoding='utf-8-sig')
 
 
 def find_number_of_page(html):
@@ -343,7 +347,7 @@ def count_word(url, _count, no, _all):
         no += 1
         status = True
     except Exception as err:
-        print(f"url:{url}\t异常信息：{err}")
+        print(f"Error code: 13. URL:{url}\t异常信息：{err}")
         write_csv([url, str(err).split(' ')[0]], 'error_words')
         status = False
     return _count, no, status
@@ -365,7 +369,7 @@ def main():
     # spider_all(homeurl, __mode__=__download__)
     # spider_all(homeurl, __mode__=__record__)
     # spider_all(homeurl, __mode__=__fix_page__, __from__=__local__)
-    spider_all(homeurl, __from__=__local__, __mode__=__count__, __init=True)
+    spider_all(homeurl, __from__=__local__, __mode__=__count__, __init=False)
 
 
 if __name__ == "__main__":
