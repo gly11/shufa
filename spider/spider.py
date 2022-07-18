@@ -19,6 +19,7 @@ __count__ = 'count'
 __download__ = 'download'
 __record__ = 'record'
 __fix_page__ = 'fix_page'
+__get_picture_list__ = 'get_picture_list'
 
 
 def post_html(url, word, _type, code="utf-8"):
@@ -150,13 +151,14 @@ def download_pic(pic_url, no, num_i, word):
         with open(f"{pic_path}{str(no)}.{pic_url.split('.')[-1]}", 'wb') as f:
             f.write(pic)
             f.close()
-        write_csv([no, word], csv_name='data')
+        write_csv([no, word, pic_url, 'Succeeded'], csv_name='data')
         print(f"#{no :3d}({word})  succeeded.")
         no += 1
         num_i += 1
     except requests.exceptions.ReadTimeout:
         print(f"{pic_url}' (read timeout={time})")
         write_csv([pic_url, 'timeout'], 'download_error')
+        write_csv([no, word, pic_url, 'Failed'], csv_name='data')
     except Exception as err:
         print(f"Download failed code: 1\t错误信息：{err}")
         write_csv([pic_url, str(err).split(' ')[0]], 'download_error')
@@ -259,7 +261,7 @@ def spider_all(homeurl, _type='kaishu', __mode__=__count__, __from__='', __init=
                 print(f"{count} in total!")
 
             elif __mode__ == __download__:
-                init_csv('data', title=['No.', 'Word'])
+                init_csv('data', title=['No.', 'Word', 'URL', 'Status'])
                 init_csv('download_error', title=['url', 'reason'])
                 i = 1
                 for word_page in word_list:
@@ -295,7 +297,7 @@ def spider_all(homeurl, _type='kaishu', __mode__=__count__, __from__='', __init=
             for word_page in word_list:
                 word_url = homeurl + word_page
                 write_csv([word_url, 'N'], 'wordlist_all')
-        if __mode__ == __count__:
+        elif __mode__ == __count__:
             init_csv('error_words', title=['url', 'Reason'])
             if __init:
                 no = 1
@@ -320,6 +322,42 @@ def spider_all(homeurl, _type='kaishu', __mode__=__count__, __from__='', __init=
                 else:
                     pass
             df.to_csv(csv_path + 'wordlist_all.csv', index=False, encoding='utf-8-sig')
+        elif __mode__ == __get_picture_list__:
+            wc = pd.read_csv(csv_path + 'words_count.csv')
+            tail = wc.tail(1)
+            _all_pic_num_ = tail['count'].values[0].split('/')[1]
+
+            if __init:
+                # 初始化
+                init_csv('data', title=['No.', 'Word', 'URL', 'Status'])
+                init_csv('download_error', title=['url', 'reason'])
+                i = 1
+            else:
+                data = pd.read_csv(csv_path+'data.csv')
+
+            wa = pd.read_csv(csv_path + 'wordlist_all.csv')
+            for col in wa.values:
+                if col[1] == 'N':
+                    # count, no, status = count_word(col[0], count, no, _all)
+                    count, no, status = count_word(col[0], count, no, _all=df.value_counts('Status')["N"])
+                    if status:
+                        col[1] = 'Y'
+                    else:
+                        pass
+                else:
+                    pass
+
+
+            for word_page in word_list:
+                print(f"Downloading word #{i}/{_all_pic_num_}.")
+                word_url = homeurl + word_page
+                word_html = get_html(word_url)
+                try:
+                    no = single_word_download(word_html, no)
+                except Exception as err:
+                    print(f"Download Error. Code 12. Message: {err}")
+                    write_csv([word_url, f'Reading_word_error:{str(err).split(" ")[0]}'], 'read_error')
+                i += 1
 
 
 def find_number_of_page(html):
