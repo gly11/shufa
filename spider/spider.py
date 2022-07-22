@@ -128,14 +128,14 @@ def fpow(url, no, html=''):
         for page in page_list:
             page_url = homeurl + page
             results = find_pics(page_url)
-            pics_list.append(results[0])
-            word_list.append(results[1])
+            pics_list += results[0]
+            word_list += results[1]
     else:
         pics_list, word_list = find_pics(url, html=html)
     l = len(pics_list)
-    df = pd.DataFrame({"No.": range(no, no + l), "Word": word_list, 'URL': pics_list, 'Status': ['N'] * l},
-                      columns=['Word', 'URL', "Status"])
-    df.to_csv(csv_path + 'raw_data.csv', index=True, encoding='utf-8-sig', mode='a', header=False)
+    df = pd.DataFrame({"No": list(range(no, no + l)), "Word": word_list, 'URL': pics_list, 'Status': ['N'] * l},
+                      columns=['No', 'Word', 'URL', "Status"])
+    df.to_csv(csv_path + 'raw_data.csv', index=False, encoding='utf-8-sig', mode='a', header=False)
     return no + l
 
 
@@ -253,7 +253,7 @@ def spider_all(_type='kaishu', __mode__=__count__, __from__='', __init=False):
                     try:
                         no = fpow(word_url, no)
                     except Exception as err:
-                        print(f"Download Error. Code 12. Message: {err}")
+                        print(f"Download Error. Code 15. Message: {err}")
                         write_csv([word_url, f'Reading_word_error:{str(err).split(" ")[0]}'], 'read_error')
                     i += 1
             elif __mode__ == __record__:
@@ -325,12 +325,13 @@ def spider_all(_type='kaishu', __mode__=__count__, __from__='', __init=False):
                 if col[1] == 'N':
                     print(f"Getting pictures of word #{i}/{_all}{'.'*10}", end='')
                     word_page_html = get_html(col[0])
-                    if type(word_page_html) != type(Error):
+                    if type(word_page_html) != Error:
                         no = fpow(col[0], no, word_page_html)
                         col[1] = 'Y'
-                        print(f'done!')
+                        print(f'{"."*5}done!')
                     else:
-                        print('failed...please check read_error')
+                        write_csv([url, word_page_html.error], 'read_error')
+                        print(f'{"."*5}failed...please check read_error')
                 else:
                     pass
                 i += 1
