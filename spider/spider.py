@@ -27,7 +27,10 @@ __post__ = 'post'
 number_per_page = 24
 _word_type = 52
 
+homeurl = 'http://www.jidajia.com'  # 末尾不加 '/' !!!
 search_url = 'http://www.jidajia.com/e/search/index2.php'
+pic_path = './img/'
+csv_path = './csv_files/'
 
 
 class Error:
@@ -70,11 +73,12 @@ def get_html(url, code="utf-8", __mode__=__get__, word=''):
         return Error('unexpected')
 
 
-def find_pics(url):
+def find_pics(url, html=''):
     pics_list = []
     word_list = []
     try:
-        html = get_html(url)
+        if html == '':
+            html = get_html(url)
         soup = BeautifulSoup(html, "html.parser")
         box = soup.find("div", {"class": "writer_box"})
         ul = box.find('ul')
@@ -107,10 +111,10 @@ def find_pages(html, _type='single_word'):
     return last_page
 
 
-def fpow(url, no, __mode__=__get__, word=''):
+def fpow(url, no, html=''):
     # find pics of a word
-    # if __mode__ == __get__:
-    html = get_html(url)
+    if html == '':
+        html = get_html(url)
     last_page = find_pages(html)
     if last_page != 0:
         # 不止一页的情形，构建页面列表
@@ -127,17 +131,12 @@ def fpow(url, no, __mode__=__get__, word=''):
             pics_list.append(results[0])
             word_list.append(results[1])
     else:
-        pics_list, word_list = find_pics(url)
+        pics_list, word_list = find_pics(url, html=html)
     l = len(pics_list)
-    # if l != 0:
-    # write_csv_multi_rows(np.array([range(no, no + l), word_list, pics_list, 'N']).transpose(), 'raw_data')
-    df = pd.DataFrame({"Index": range(no, no + l), "Word": word_list, 'URL': pics_list, 'Status': ['N'] * l},
+    df = pd.DataFrame({"No.": range(no, no + l), "Word": word_list, 'URL': pics_list, 'Status': ['N'] * l},
                       columns=['Word', 'URL', "Status"])
     df.to_csv(csv_path + 'raw_data.csv', index=True, encoding='utf-8-sig', mode='a', header=False)
     return no + l
-    # elif __mode__ == __post__:
-    #     html = get_html(search_url, __mode__='post', word=word)
-    #     fpow(html, no, search_url + word)
 
 
 def download_pic(pic_url, no, num_i, word):
@@ -214,7 +213,7 @@ def find_words(page_list):
     return word_list
 
 
-def spider_all(homeurl, _type='kaishu', __mode__=__count__, __from__='', __init=False):
+def spider_all(_type='kaishu', __mode__=__count__, __from__='', __init=False):
     url = f'{homeurl}/{_type}/'
     html = get_html(url)
     if __from__ == '':
@@ -251,9 +250,8 @@ def spider_all(homeurl, _type='kaishu', __mode__=__count__, __from__='', __init=
                 for word_page in word_list:
                     print(f"Downloading word #{i}/{_all}.")
                     word_url = homeurl + word_page
-                    word_html = get_html(word_url)
                     try:
-                        no = fpow(word_html, no, word_url)
+                        no = fpow(word_url, no)
                     except Exception as err:
                         print(f"Download Error. Code 12. Message: {err}")
                         write_csv([word_url, f'Reading_word_error:{str(err).split(" ")[0]}'], 'read_error')
@@ -266,6 +264,7 @@ def spider_all(homeurl, _type='kaishu', __mode__=__count__, __from__='', __init=
         except Exception as err:
             print(f"Error code: 11. Message: {err}")
             write_csv([url, f'Error11:{str(err).split(" ")[0]}'], 'read_error')
+
     elif __from__ == __local__:
         if __mode__ == __fix_page__:
             with open(csv_path + 'pages.csv', 'r+') as f:
@@ -312,7 +311,6 @@ def spider_all(homeurl, _type='kaishu', __mode__=__count__, __from__='', __init=
                 # 初始化
                 init_csv('raw_data', title=['No.', 'Word', 'URL', 'Status'])
                 init_csv('read_error', title=['URL', 'Reason'])
-                i = 1
                 no = 1
             else:
                 data = pd.read_csv(csv_path + 'raw_data.csv')
@@ -321,27 +319,21 @@ def spider_all(homeurl, _type='kaishu', __mode__=__count__, __from__='', __init=
                 no = tail[0] + 1  # no: data中已有的信息条数
 
             wa = pd.read_csv(csv_path + 'wordlist_all.csv')
+            i = 1
+            _all = wa.value_counts('Status')['N']
             for col in wa.values:
                 if col[1] == 'N':
-                    # count, no, status = count_word(col[0], count, no, _all)
-                    # count, no, status = count_word(col[0], count, no, _all=wa.value_counts('Status')["N"])
+                    print(f"Getting pictures of word #{i}/{_all}{'.'*10}", end='')
                     word_page_html = get_html(col[0])
-                    if type(word_page_html) != '__main__.Error':
-                        no = fpow(word_page_html, no, col[0])
+                    if type(word_page_html) != type(Error):
+                        no = fpow(col[0], no, word_page_html)
                         col[1] = 'Y'
+                        print(f'done!')
                     else:
-                        pass
+                        print('failed...please check read_error')
                 else:
                     pass
-
-            for word_page in word_list:
-                word_url = homeurl + word_page
-                word_html = get_html(word_url)
-                try:
-                    no = fpow(word_html, no)
-                except Exception as err:
-                    print(f"Download Error. Code 12. Message: {err}")
-                    write_csv([word_url, f'Reading_word_error:{str(err).split(" ")[0]}'], 'read_error')
+                i += 1
 
 
 def find_number_of_page(html):
@@ -375,11 +367,6 @@ def count_word(url, _count, no, _all):
     return _count, no, status
 
 
-homeurl = 'http://www.jidajia.com'  # 末尾不加 '/' !!!
-pic_path = './img/'
-csv_path = './csv_files/'
-
-
 def main():
     # word = '芋'
 
@@ -387,11 +374,12 @@ def main():
     # set_dir(csv_path)
     # fpow(word=word, __mode__=__post__)
 
-    # spider_all(homeurl)
-    # spider_all(homeurl, __mode__=__download__)
-    # spider_all(homeurl, __mode__=__record__)
-    # spider_all(homeurl, __mode__=__fix_page__, __from__=__local__)
-    spider_all(homeurl, __from__=__local__, __mode__=__count__, __init=False)
+    # spider_all()
+    # spider_all( __mode__=__download__)
+    # spider_all( __mode__=__record__)
+    # spider_all( __mode__=__fix_page__, __from__=__local__)
+    # spider_all( __from__=__local__, __mode__=__count__, __init=False)
+    spider_all(__mode__=__get_picture_list__, __from__=__local__, __init=True)
 
 
 if __name__ == "__main__":
