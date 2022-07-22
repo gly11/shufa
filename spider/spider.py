@@ -214,9 +214,9 @@ def find_words(page_list):
 
 
 def spider_all(_type='kaishu', __mode__=__count__, __from__='', __init=False):
-    url = f'{homeurl}/{_type}/'
-    html = get_html(url)
     if __from__ == '':
+        url = f'{homeurl}/{_type}/'
+        html = get_html(url)
         init_csv('read_error', ['URL', 'Reason'])
         init_csv('pages', ['Page', 'URL', 'Status', 'Remark'])
 
@@ -329,8 +329,9 @@ def spider_all(_type='kaishu', __mode__=__count__, __from__='', __init=False):
                         no = fpow(col[0], no, word_page_html)
                         col[1] = 'Y'
                         print(f'{"."*5}done!')
+                        wa.to_csv(csv_path + 'wordlist_all.csv', index=False, encoding='utf-8-sig')
                     else:
-                        write_csv([url, word_page_html.error], 'read_error')
+                        write_csv([col[0], word_page_html.error], 'read_error')
                         print(f'{"."*5}failed...please check read_error')
                 else:
                     pass
