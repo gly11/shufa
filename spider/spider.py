@@ -139,24 +139,21 @@ def fpow(url, no, html=''):
     return no + l
 
 
-def download_pic(pic_url, no, num_i, word):
+def download_pic(pic_url, no, word, _all):
     try:
         pic = requests.get(pic_url, timeout=10).content
         with open(f"{pic_path}{str(no)}.{pic_url.split('.')[-1]}", 'wb') as f:
             f.write(pic)
             f.close()
-        write_csv([no, word, pic_url, 'Succeeded'], csv_name='data')
-        print(f"#{no :3d}({word})  succeeded.")
-        no += 1
-        num_i += 1
+        print(f"#{no :3d}/{_all}({word})  succeeded.")
     except requests.exceptions.ReadTimeout:
         print(f"{pic_url}' (read timeout={time})")
-        write_csv([pic_url, 'timeout'], 'download_error')
-        write_csv([no, word, pic_url, 'Failed'], csv_name='data')
+        return Error('timeout')
     except Exception as err:
         print(f"Download failed code: 1\t错误信息：{err}")
-        write_csv([pic_url, str(err).split(' ')[0]], 'download_error')
-    return no, num_i
+        return Error('unexpected')
+    else:
+        return 0
 
 
 def write_csv(rows, csv_name):
@@ -337,6 +334,22 @@ def spider_all(_type='kaishu', __mode__=__count__, __from__='', __init=False):
                 if row[2] == 'N':
                     no = get_pic_lists(row, _all, no, 2, 0, i, df, 'read_error.csv')
                     i += 1
+
+        elif __mode__ == __download__:
+            file = 'raw_data.csv'
+            data = pd.read_csv(csv_path + file)
+            tail = data.tail(1)
+            _all = tail.index.stop + 1
+            for row in data.values:
+                if row[3] == 'N':
+                    status = download_pic(row[2], no=row[0], word=row[2], _all=_all)
+                    if type(status) != Error:
+                        row[3] = 'Y'
+                        data.to_csv(csv_path + file, index=False, encoding='utf-8-sig')
+                    else:
+                        pass
+                else:
+                    pass
 
 
 def get_pic_lists(row, _all, no, ps, pu, i, df, file):
