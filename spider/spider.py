@@ -315,8 +315,8 @@ def spider_all(_type='kaishu', __mode__=__count__, __from__='', __init=False):
             else:
                 data = pd.read_csv(csv_path + 'raw_data.csv')
                 tail = data.tail(1)
-                # no = tail.index.stop + 1
-                no = tail[0] + 1  # no: data中已有的信息条数
+                no = tail.index.stop + 1        # no: data中已有的信息条数
+                # no = tail['NO.'] + 1
             wa = pd.read_csv(csv_path + 'wordlist_all.csv')
             i = 1
             _all = wa.value_counts('Status')['N']
@@ -327,16 +327,16 @@ def spider_all(_type='kaishu', __mode__=__count__, __from__='', __init=False):
         elif __mode__ == __fix_raw_data__:
             data = pd.read_csv(csv_path + 'raw_data.csv')
             tail = data.tail(1)
-            # no = tail.index.stop + 1
-            no = tail[0] + 1  # no: data中已有的信息条数
+            no = tail.index.stop + 1            # no: data中已有的信息条数
+            # no = tail['NO.'] + 1
             df = pd.read_csv(csv_path + 'read_error.csv')
             _all = df.value_counts('Status')['N']           # 统计Status='N'的个数
             i = 1
             # 遍历read_error.csv中的所有行
             for row in df.values:
                 if row[2] == 'N':
-                    print(f"Getting pictures of word #{i}/{_all}{'.' * 10}", end='')
                     no = get_pic_lists(row, _all, no, 2, 0, i, df)
+                    i += 1
 
 
 def get_pic_lists(row, _all, no, ps, pu, i, df):
@@ -347,7 +347,7 @@ def get_pic_lists(row, _all, no, ps, pu, i, df):
         word_page_html = get_html(row[pu])
         if type(word_page_html) != Error:
             no = fpow(row[pu], no, word_page_html)
-            row[ps] = 'Y'
+            df.drop(i-1)
             print(f'{"." * 5}done!')
             df.to_csv(csv_path + 'wordlist_all.csv', index=False, encoding='utf-8-sig')
         else:
