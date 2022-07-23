@@ -1,7 +1,6 @@
 import csv
 import shutil
-
-import numpy as np
+# import numpy as np
 import requests
 from bs4 import BeautifulSoup
 import os
@@ -24,6 +23,7 @@ __fix_page__ = 'fix_page'
 __get_picture_list__ = 'get_picture_list'
 __get__ = 'get'
 __post__ = 'post'
+__fix_raw_data__ = 'fix_raw_data'
 number_per_page = 24
 _word_type = 52
 
@@ -89,7 +89,7 @@ def find_pics(url, html=''):
             pics_list.append(pics[i]['href'])
             word_list.append(ch[i].string.split("（")[0])
     except Exception as err:
-        write_csv([url, f"Find_pics_of_page_error:{str(err).split(' ')[0]}"], 'read_error')
+        write_csv([url, f"Find_pics_of_page_error:{str(err).split(' ')[0]}" ,"N"], 'read_error')
     return pics_list, word_list
 
 
@@ -217,7 +217,7 @@ def spider_all(_type='kaishu', __mode__=__count__, __from__='', __init=False):
     if __from__ == '':
         url = f'{homeurl}/{_type}/'
         html = get_html(url)
-        init_csv('read_error', ['URL', 'Reason'])
+        init_csv('read_error', ['URL', 'Reason', "Status"])
         init_csv('pages', ['Page', 'URL', 'Status', 'Remark'])
 
         try:
@@ -254,7 +254,7 @@ def spider_all(_type='kaishu', __mode__=__count__, __from__='', __init=False):
                         no = fpow(word_url, no)
                     except Exception as err:
                         print(f"Download Error. Code 15. Message: {err}")
-                        write_csv([word_url, f'Reading_word_error:{str(err).split(" ")[0]}'], 'read_error')
+                        write_csv([word_url, f'Reading_word_error:{str(err).split(" ")[0]}', "N"], 'read_error')
                     i += 1
             elif __mode__ == __record__:
                 init_csv("wordlist_all", ['URL', 'Status'])
@@ -263,7 +263,7 @@ def spider_all(_type='kaishu', __mode__=__count__, __from__='', __init=False):
                     write_csv([word_url, 'N'], 'wordlist_all')
         except Exception as err:
             print(f"Error code: 11. Message: {err}")
-            write_csv([url, f'Error11:{str(err).split(" ")[0]}'], 'read_error')
+            write_csv([url, f'Error11:{str(err).split(" ")[0]}', "N"], 'read_error')
 
     elif __from__ == __local__:
         if __mode__ == __fix_page__:
@@ -294,12 +294,12 @@ def spider_all(_type='kaishu', __mode__=__count__, __from__='', __init=False):
                 count = int(tail['count'].values[0].split("/")[1])
             df = pd.read_csv(csv_path + 'wordlist_all.csv')
             # _all = df.value_counts('Status')["N"]
-            for col in df.values:
-                if col[1] == 'N':
-                    # count, no, status = count_word(col[0], count, no, _all)
-                    count, no, status = count_word(col[0], count, no, _all=df.value_counts('Status')["N"])
+            for row in df.values:
+                if row[1] == 'N':
+                    # count, no, status = count_word(row[0], count, no, _all)
+                    count, no, status = count_word(row[0], count, no, _all=df.value_counts('Status')["N"])
                     if status:
-                        col[1] = 'Y'
+                        row[1] = 'Y'
                     else:
                         pass
                 else:
@@ -310,32 +310,52 @@ def spider_all(_type='kaishu', __mode__=__count__, __from__='', __init=False):
             if __init:
                 # 初始化
                 init_csv('raw_data', title=['No.', 'Word', 'URL', 'Status'])
-                init_csv('read_error', title=['URL', 'Reason'])
+                init_csv('read_error', title=['URL', 'Reason', "Status"])
                 no = 1
             else:
                 data = pd.read_csv(csv_path + 'raw_data.csv')
                 tail = data.tail(1)
                 # no = tail.index.stop + 1
                 no = tail[0] + 1  # no: data中已有的信息条数
-
             wa = pd.read_csv(csv_path + 'wordlist_all.csv')
             i = 1
             _all = wa.value_counts('Status')['N']
-            for col in wa.values:
-                if col[1] == 'N':
-                    print(f"Getting pictures of word #{i}/{_all}{'.'*10}", end='')
-                    word_page_html = get_html(col[0])
-                    if type(word_page_html) != Error:
-                        no = fpow(col[0], no, word_page_html)
-                        col[1] = 'Y'
-                        print(f'{"."*5}done!')
-                        wa.to_csv(csv_path + 'wordlist_all.csv', index=False, encoding='utf-8-sig')
-                    else:
-                        write_csv([col[0], word_page_html.error], 'read_error')
-                        print(f'{"."*5}failed...please check read_error')
-                else:
-                    pass
+            for row in wa.values:
+                no = get_pic_lists(row, _all, no, 1, 0, i, wa)
                 i += 1
+
+        elif __mode__ == __fix_raw_data__:
+            data = pd.read_csv(csv_path + 'raw_data.csv')
+            tail = data.tail(1)
+            # no = tail.index.stop + 1
+            no = tail[0] + 1  # no: data中已有的信息条数
+            df = pd.read_csv(csv_path + 'read_error.csv')
+            _all = df.value_counts('Status')['N']           # 统计Status='N'的个数
+            i = 1
+            # 遍历read_error.csv中的所有行
+            for row in df.values:
+                if row[2] == 'N':
+                    print(f"Getting pictures of word #{i}/{_all}{'.' * 10}", end='')
+                    no = get_pic_lists(row, _all, no, 2, 0, i, df)
+
+
+def get_pic_lists(row, _all, no, ps, pu, i, df):
+    # ps: position of Status
+    # pu: position of URL
+    if row[ps] == 'N':
+        print(f"Getting pictures of word #{i}/{_all}{'.' * 10}", end='')
+        word_page_html = get_html(row[pu])
+        if type(word_page_html) != Error:
+            no = fpow(row[pu], no, word_page_html)
+            row[ps] = 'Y'
+            print(f'{"." * 5}done!')
+            df.to_csv(csv_path + 'wordlist_all.csv', index=False, encoding='utf-8-sig')
+        else:
+            write_csv([row[pu], word_page_html.error, 'N'], 'read_error')
+            print(f'{"." * 5}failed...please check read_error')
+    else:
+        pass
+    return no
 
 
 def find_number_of_page(html):
@@ -381,7 +401,8 @@ def main():
     # spider_all( __mode__=__record__)
     # spider_all( __mode__=__fix_page__, __from__=__local__)
     # spider_all( __from__=__local__, __mode__=__count__, __init=False)
-    spider_all(__mode__=__get_picture_list__, __from__=__local__, __init=True)
+    # spider_all(__mode__=__get_picture_list__, __from__=__local__, __init=True)
+    spider_all(__mode__=__fix_raw_data__, __from__=__local__)
 
 
 if __name__ == "__main__":
