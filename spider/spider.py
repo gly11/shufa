@@ -89,7 +89,7 @@ def find_pics(url, html=''):
             pics_list.append(pics[i]['href'])
             word_list.append(ch[i].string.split("（")[0])
     except Exception as err:
-        write_csv([url, f"Find_pics_of_page_error:{str(err).split(' ')[0]}" ,"N"], 'read_error')
+        write_csv([url, f"Find_pics_of_page_error:{str(err).split(' ')[0]}"], 'read_error')
     return pics_list, word_list
 
 
@@ -217,7 +217,7 @@ def spider_all(_type='kaishu', __mode__=__count__, __from__='', __init=False):
     if __from__ == '':
         url = f'{homeurl}/{_type}/'
         html = get_html(url)
-        init_csv('read_error', ['URL', 'Reason', "Status"])
+        init_csv('read_error', ['URL', 'Reason'])
         init_csv('pages', ['Page', 'URL', 'Status', 'Remark'])
 
         try:
@@ -254,7 +254,7 @@ def spider_all(_type='kaishu', __mode__=__count__, __from__='', __init=False):
                         no = fpow(word_url, no)
                     except Exception as err:
                         print(f"Download Error. Code 15. Message: {err}")
-                        write_csv([word_url, f'Reading_word_error:{str(err).split(" ")[0]}', "N"], 'read_error')
+                        write_csv([word_url, f'Reading_word_error:{str(err).split(" ")[0]}'], 'read_error')
                     i += 1
             elif __mode__ == __record__:
                 init_csv("wordlist_all", ['URL', 'Status'])
@@ -263,7 +263,7 @@ def spider_all(_type='kaishu', __mode__=__count__, __from__='', __init=False):
                     write_csv([word_url, 'N'], 'wordlist_all')
         except Exception as err:
             print(f"Error code: 11. Message: {err}")
-            write_csv([url, f'Error11:{str(err).split(" ")[0]}', "N"], 'read_error')
+            write_csv([url, f'Error11:{str(err).split(" ")[0]}'], 'read_error')
 
     elif __from__ == __local__:
         if __mode__ == __fix_page__:
@@ -310,7 +310,7 @@ def spider_all(_type='kaishu', __mode__=__count__, __from__='', __init=False):
             if __init:
                 # 初始化
                 init_csv('raw_data', title=['No.', 'Word', 'URL', 'Status'])
-                init_csv('read_error', title=['URL', 'Reason', "Status"])
+                init_csv('read_error', title=['URL', 'Reason'])
                 no = 1
             else:
                 data = pd.read_csv(csv_path + 'raw_data.csv')
@@ -321,7 +321,7 @@ def spider_all(_type='kaishu', __mode__=__count__, __from__='', __init=False):
             i = 1
             _all = wa.value_counts('Status')['N']
             for row in wa.values:
-                no = get_pic_lists(row, _all, no, 1, 0, i, wa)
+                no = get_pic_lists(row, _all, no, 1, 0, i, wa, 'wordlist_all.csv')
                 i += 1
 
         elif __mode__ == __fix_raw_data__:
@@ -335,11 +335,11 @@ def spider_all(_type='kaishu', __mode__=__count__, __from__='', __init=False):
             # 遍历read_error.csv中的所有行
             for row in df.values:
                 if row[2] == 'N':
-                    no = get_pic_lists(row, _all, no, 2, 0, i, df)
+                    no = get_pic_lists(row, _all, no, 2, 0, i, df, 'read_error.csv')
                     i += 1
 
 
-def get_pic_lists(row, _all, no, ps, pu, i, df):
+def get_pic_lists(row, _all, no, ps, pu, i, df, file):
     # ps: position of Status
     # pu: position of URL
     if row[ps] == 'N':
@@ -347,11 +347,17 @@ def get_pic_lists(row, _all, no, ps, pu, i, df):
         word_page_html = get_html(row[pu])
         if type(word_page_html) != Error:
             no = fpow(row[pu], no, word_page_html)
-            df.drop(i-1)
+            if file == "read_error.csv":
+                df.drop(i-1, inplace=True)
+            elif file == "wordlist_all.csv":
+                row[ps] = 'Y'
+            df.to_csv(csv_path + file, index=False, encoding='utf-8-sig')
             print(f'{"." * 5}done!')
-            df.to_csv(csv_path + 'wordlist_all.csv', index=False, encoding='utf-8-sig')
         else:
-            write_csv([row[pu], word_page_html.error, 'N'], 'read_error')
+            if file == "wordlist_all.csv":
+                write_csv([row[pu], word_page_html.error], 'read_error')
+            else:
+                pass
             print(f'{"." * 5}failed...please check read_error')
     else:
         pass
