@@ -339,17 +339,22 @@ def spider_all(_type='kaishu', __mode__=__count__, __from__='', __init=False):
             file = 'raw_data.csv'
             data = pd.read_csv(csv_path + file)
             tail = data.tail(1)
-            _all = tail.index.stop + 1
+            _all = tail.index.stop
+            i = 0
             for row in data.values:
                 if row[3] == 'N':
-                    status = download_pic(row[2], no=row[0], word=row[2], _all=_all)
+                    no = row[0]
+                    status = download_pic(row[2], no=no, word=row[1], _all=_all)
                     if type(status) != Error:
-                        row[3] = 'Y'
-                        data.to_csv(csv_path + file, index=False, encoding='utf-8-sig')
+                        data.loc[i, 'Status'] = 'Y'
+                        if i % 2:
+                            data.to_csv(csv_path + file, index=False, encoding='utf-8-sig')
                     else:
                         pass
                 else:
                     pass
+                i += 1
+            data.to_csv(csv_path + file, index=False, encoding='utf-8-sig')
 
 
 def get_pic_lists(row, _all, no, ps, pu, i, df, file):
@@ -421,7 +426,8 @@ def main():
     # spider_all( __mode__=__fix_page__, __from__=__local__)
     # spider_all( __from__=__local__, __mode__=__count__, __init=False)
     # spider_all(__mode__=__get_picture_list__, __from__=__local__, __init=True)
-    spider_all(__mode__=__fix_raw_data__, __from__=__local__)
+    # spider_all(__mode__=__fix_raw_data__, __from__=__local__)
+    spider_all(__mode__=__download__, __from__=__local__)
 
 
 if __name__ == "__main__":
