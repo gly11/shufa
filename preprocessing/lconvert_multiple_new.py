@@ -21,15 +21,6 @@ try:
             #打印长宽
             x,y= img.shape
             # print(img.shape)
-
-            #二值化：遍历灰度图，阈值大于100的全变白
-            # for i in range(x):
-            #     for j in range(y):
-            #         if img[i,j]>100:
-            #             img[i,j]=255
-            #         else:
-            #             img[i,j]=0
-
             cv2.threshold(img,128,255,cv2.THRESH_BINARY + cv2.THRESH_OTSU,img)
             black = 0
             white = 0
