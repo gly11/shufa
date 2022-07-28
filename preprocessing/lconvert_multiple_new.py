@@ -4,8 +4,6 @@ import os
 
 try:
     # 将黑底白字转换为白底黑字
-    str_name1 = 'cut'
-    str_name3 = '.png'
     rootdir = r'./test_cv2'
     for parent, dirnames, filenames in os.walk(rootdir):
         # parent: 即rootdir(当前目录); filenames: 当前目录下的子文件夹列表; filenames: 当前目录下的文件列表
