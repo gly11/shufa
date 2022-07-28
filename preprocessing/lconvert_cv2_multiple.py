@@ -116,8 +116,8 @@ def main():
                 print('THe full filename is:', currentPath)
                 image = Image.open(currentPath)  # 打开当前文件夹中图片
                 # 计算二值化后的图片黑白像素点以判断转换后的图片是黑底白字还是白底黑字
-                rgb_start = image.getcolors()[0]
-                rgb_end = image.getcolors()[-1]
+                rgb_start = image.getcolors()[0]        # 白色像素点的个数
+                rgb_end = image.getcolors()[-1]         # 黑色像素点的个数
                 rgb_start_color, rgb_end_color = rgb_start[1], rgb_end[1]
                 rgb_start_int, rgb_end_int = rgb_start[0], rgb_end[0]
 
