@@ -347,7 +347,7 @@ def spider_all(_type='kaishu', __mode__=__count__, __from__='', __init=False):
                     status = download_pic(row[2], no=no, word=row[1], _all=_all)
                     if type(status) != Error:
                         data.loc[i, 'Status'] = 'Y'
-                        if i % 2:
+                        if i % 10000 == 0:
                             data.to_csv(csv_path + file, index=False, encoding='utf-8-sig')
                     else:
                         pass
