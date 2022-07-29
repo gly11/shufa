@@ -16,23 +16,26 @@ def main():
                     img = cv2.cvtColor(src, cv2.COLOR_BGRA2GRAY)           # 进行灰度化
                     # cv2.imshow('img', img)
                     # cv2.waitKey(0)
-                    # 长宽
-                    x,y= img.shape
-                    cv2.threshold(img,128,255,cv2.THRESH_BINARY + cv2.THRESH_OTSU,img)
-                    black = 0
-                    white = 0
-                    # 计算黑白比例：遍历二值图，为 0 则black+1，否则white+1
-                    for i in range(x):
-                        for j in range(y):
-                            if img[i,j]==0:
-                                black+=1
-                            else:
-                                white+=1
-                    #将黑色像素大于白色像素的图片进行Bitwise 的反转
-                    # print(f"{black}, {white}")
-                    if white == 0:                          # 判断是否为纯黑白透明背景图
+                    if cv2.countNonZero(img) == 0:
+                        # 判断是否为纯黑，若是，则直接返回原值，不做处理
                         img = src
                     else:
+                        # 若不是，则进行二值化、反色等处理
+                        x,y= img.shape                  # 长宽
+                        # img = cv2.GaussianBlur(img, (5, 5), 0)        # 高斯滤波去噪
+                        img = cv2.medianBlur(img, 7)                    # 均值滤波去噪(均值去噪效果好于高斯，数值越大去噪效果越好，但从7开始某些过于细小的笔画丢失)
+                        cv2.threshold(img,128,255,cv2.THRESH_BINARY + cv2.THRESH_OTSU,img)
+                        black = 0
+                        white = 0
+                        # 计算黑白比例：遍历二值图，为 0 则black+1，否则white+1
+                        for i in range(x):
+                            for j in range(y):
+                                if img[i,j]==0:
+                                    black+=1
+                                else:
+                                    white+=1
+                        #将黑色像素大于白色像素的图片进行Bitwise 的反转
+                        # print(f"{black}, {white}")
                         if white < black:
                             img = cv2.bitwise_not(img)    #image2是反转后的图像
                     path = f'./test_cv2_converted/{filename}'           #保存地址
