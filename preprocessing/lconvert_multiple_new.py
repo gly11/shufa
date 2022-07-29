@@ -1,24 +1,29 @@
 import cv2
 import os
+from tqdm import tqdm
 
 
 def main():
-    try:
-        # 将黑底白字转换为白底黑字
-        rootdir = r'./test_cv2'
-        for parent, dirnames, filenames in os.walk(rootdir):
-            # parent: 即rootdir(当前目录); filenames: 当前目录下的子文件夹列表; filenames: 当前目录下的文件列表
-            for filename in filenames:
+    # 将黑底白字转换为白底黑字
+    rootdir = r'./test_cv2'
+    for parent, dirnames, filenames in os.walk(rootdir):
+        # parent: 即rootdir(当前目录); filenames: 当前目录下的子文件夹列表; filenames: 当前目录下的文件列表
+        for filename in tqdm(filenames):
+            try:
                 if filename.split('.')[-1] == 'png':
                     currentPath = f"{parent}/{filename}"
-                    print('The full filename is:' , currentPath)
+                    # print('The full filename is:' , currentPath)
                     src = cv2.imread(currentPath, cv2.IMREAD_UNCHANGED)           # 打开当前文件夹中图片
                     img = cv2.cvtColor(src, cv2.COLOR_BGRA2GRAY)           # 进行灰度化
-                    # cv2.imshow('img', img)
-                    # cv2.waitKey(0)
                     if cv2.countNonZero(img) == 0:
                         # 判断是否为纯黑，若是，则直接返回原值，不做处理
                         img = src
+
+                    ## 仅选取出透明背景图片 ##
+                    else:
+                        continue
+
+                    '''
                     else:
                         # 若不是，则进行二值化、反色等处理
                         x,y= img.shape                  # 长宽
@@ -38,12 +43,13 @@ def main():
                         # print(f"{black}, {white}")
                         if white < black:
                             img = cv2.bitwise_not(img)    #image2是反转后的图像
+                    '''
                     path = f'./test_cv2_converted/{filename}'           #保存地址
                     cv2.imwrite(path, img)
-                    print(f"{path}已保存！")
+                    # print(f"{path}已保存！")
 
-    except Exception as err:
-        print(f'Error: {err}')
+            except Exception as err:
+                print(f'Error: {err}')
 
 
 if __name__ == '__main__':
