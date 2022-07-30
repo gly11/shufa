@@ -4,8 +4,8 @@ from tensorflow import keras
 from tensorflow.keras import layers
 # import matplotlib.pyplot as plt #后续数据可视化时需要
 
-#非必须包↓若用adamw则加，实测用keras自带的adam效果更好
-import tensorflow_addons as tfa 
+# 非必须包↓若用adamw则加，实测用keras自带的adam效果更好
+import tensorflow_addons as tfa
 
 # 类别数
 num_classes = 100
@@ -47,7 +47,8 @@ data_augmentation = keras.Sequential(
 )
 data_augmentation.layers[0].adapt(x_train)
 
-#这里是数据可视化，需要用mlt
+
+# 这里是数据可视化，需要用mlt
 # def mlp(x, hidden_units, dropout_rate):
 #     for units in hidden_units:
 #         x = layers.Dense(units, activation=tf.nn.gelu)(x)
@@ -71,7 +72,6 @@ data_augmentation.layers[0].adapt(x_train)
 #         patch_dims = patches.shape[-1]
 #         patches = tf.reshape(patches, [batch_size, -1, patch_dims])
 #         return patches
-
 
 
 # plt.figure(figsize=(4, 4))
@@ -104,11 +104,13 @@ class PatchEncoder(layers.Layer):
         self.position_embedding = layers.Embedding(
             input_dim=num_patches, output_dim=projection_dim
         )
-#这里call后需要定义get_config函数，命名自拟，文章3.9中给出
+
+    # 这里call后需要定义get_config函数，命名自拟，文章3.9中给出
     def call(self, patch):
         positions = tf.range(start=0, limit=self.num_patches, delta=1)
         encoded = self.projection(patch) + self.position_embedding(positions)
         return encoded
+
 
 def create_vit_classifier():
     inputs = layers.Input(shape=input_shape)
@@ -129,7 +131,7 @@ def create_vit_classifier():
         )(x1, x1)
         # Skip connection.
         x2 = layers.Add()([attention_output, encoded_patches])
-     
+
         x3 = layers.LayerNormalization(epsilon=1e-6)(x2)
         # MLP.
         x3 = mlp(x3, hidden_units=transformer_units, dropout_rate=0.1)
@@ -148,14 +150,15 @@ def create_vit_classifier():
     model.summary()
     return model
 
-#tfa.方法可替换为adam
+
+# tfa.方法可替换为adam
 def run_experiment(model):
     optimizer = tfa.optimizers.AdamW(
         learning_rate=learning_rate, weight_decay=weight_decay
     )
 
     model.compile(
-    # 下述可直接替换为  optimizer='adam',
+        # 下述可直接替换为  optimizer='adam',
         optimizer=optimizer,
         loss=keras.losses.SparseCategoricalCrossentropy(from_logits=True),
         metrics=[
@@ -191,4 +194,3 @@ def run_experiment(model):
 
 vit_classifier = create_vit_classifier()
 history = run_experiment(vit_classifier)
-
