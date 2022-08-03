@@ -14,8 +14,8 @@ def move_file(srcfile, dstpath):  # 移动函数
 
 
 def main():
-    root_dir = "./img_selected/"
-    with open("../spider/csv_files/data.csv") as f:
+    root_dir = "../data/img_selected/"
+    with open("../data/csv_files/data.csv") as f:
         reader = csv.reader(f)
         next(reader)
         dic = dict(reader)

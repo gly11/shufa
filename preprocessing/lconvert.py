@@ -5,8 +5,8 @@ from tqdm import tqdm
 
 def main():
     # 将黑底白字转换为白底黑字
-    rootdir = r'./img'
-    for parent, dirnames, filenames in os.walk(rootdir):
+    root_dir = '../data/img'
+    for parent, dirnames, filenames in os.walk(root_dir):
         # parent: 即rootdir(当前目录); filenames: 当前目录下的子文件夹列表; filenames: 当前目录下的文件列表
         for filename in tqdm(filenames):
             try:
@@ -48,7 +48,7 @@ def main():
                     # 判断文件夹是否存在，若不存在则创建之
                     if not os.path.exists(odir):
                         os.mkdir(odir)
-                    path = f'./{odir}/{filename}'           #保存地址
+                    path = f'../data/{odir}/{filename}'           #保存地址
                     cv2.imwrite(path, img)
                     # print(f"{path}已保存！")
 
