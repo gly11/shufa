@@ -1,11 +1,13 @@
 import tensorflow as tf
+import keras.losses as kl
 import keras.layers as tfl
 import keras.applications as ka
+import NeuralNetworks.build_dataset as build_dataset
 
-img_path = ''  # 数据路径
+
 preprocess_input = ka.resnet_rs.preprocess_input
-IMG_SIZE = (192, 192)
-neuron_numbers = 1
+IMG_SIZE = build_dataset.IMG_SIZE
+neuron_numbers = len(build_dataset.label_names)
 
 
 def mymodel(image_shape=IMG_SIZE):
@@ -21,22 +23,24 @@ def mymodel(image_shape=IMG_SIZE):
     # build new layers
     x = tfl.GlobalAveragePooling2D()(x)
     x = tfl.Dropout(0.2)(x)
-    outputs = tfl.Dense(neuron_numbers)(x)  # neuron_numbers: hyper-parameter
+    outputs = tfl.Dense(neuron_numbers, activation='softmax')(x)  # neuron_numbers: hyper-parameter
     # outputs = x
     model = tf.keras.Model(inputs, outputs)
-
     return model
 
 
 def main():
     model2 = mymodel(IMG_SIZE)
-    model2.summary()
-    # base_learning_rate = 0.001
-    # model2.compile(optimizer=tf.keras.optimizers.Adam(lr=base_learning_rate),
-    #                loss=tf.keras.losses.BinaryCrossentropy(from_logits=True),
-    #                metrics=['accuracy'])
-    # initial_epochs = 5
-    # history = model2.fit(train_dataset, validation_data=validation_dataset, epochs=initial_epochs)
+    # model2.summary()
+    base_learning_rate = 0.001
+    model2.compile(optimizer=tf.keras.optimizers.Adam(learning_rate=base_learning_rate),
+                   loss='categorical_crossentropy',
+                   metrics=['accuracy'])
+    initial_epochs = 1
+    train_dataset = build_dataset.train_dataset
+    validation_dataset = build_dataset.validation_dataset
+    history = model2.fit(train_dataset, validation_data=validation_dataset, epochs=initial_epochs, steps_per_epoch=10)
+    print(history.history)
 
 
 if __name__ == '__main__':
