@@ -9,7 +9,8 @@ import utils
 
 AUTOTUNE = tf.data.experimental.AUTOTUNE
 BATCH_SIZE = 32
-IMG_SIZE = (160, 160)
+X = 128
+IMG_SIZE = (X, X)
 root = utils.get_project_path()
 data_root = f"{root}/data/img_selected/"
 label_names = sorted(path.split('/')[-1] for path in glob(f"{data_root}*"))
