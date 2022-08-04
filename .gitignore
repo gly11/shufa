@@ -140,5 +140,6 @@ cython_debug/
 *.png
 *.zip
 *.pn
+*.jpg
 
 .idea/

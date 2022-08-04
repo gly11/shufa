@@ -15,6 +15,7 @@ root = utils.get_project_path()
 data_root = f"{root}/data/img_selected/"
 label_names = sorted(path.split('/')[-1] for path in glob(f"{data_root}*"))
 label_to_index = dict((name, index) for index, name in enumerate(label_names))
+color_mode = 'rgb'
 train_dataset = image_dataset_from_directory(data_root,
                                              shuffle=True,
                                              batch_size=BATCH_SIZE,
@@ -23,7 +24,8 @@ train_dataset = image_dataset_from_directory(data_root,
                                              subset='training',
                                              seed=42,
                                              label_mode='categorical',
-                                             class_names=label_names)
+                                             class_names=label_names,
+                                             color_mode=color_mode)
 validation_dataset = image_dataset_from_directory(data_root,
                                                   shuffle=True,
                                                   batch_size=BATCH_SIZE,
@@ -32,7 +34,8 @@ validation_dataset = image_dataset_from_directory(data_root,
                                                   subset='validation',
                                                   seed=42,
                                                   label_mode='categorical',
-                                                  class_names=label_names)
+                                                  class_names=label_names,
+                                                  color_mode=color_mode)
 class_names = train_dataset.class_names
 # print(class_names)
 train_dataset = train_dataset.prefetch(buffer_size=AUTOTUNE)
