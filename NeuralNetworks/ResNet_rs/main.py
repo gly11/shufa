@@ -2,6 +2,7 @@ import tensorflow as tf
 # import keras.losses as kl
 import keras.layers as tfl
 import keras.applications as ka
+import matplotlib.pyplot as plt
 import sys
 
 sys.path.append("../..")
@@ -39,7 +40,7 @@ def mymodel(image_shape=IMG_SIZE):
 def main():
     model2 = mymodel(IMG_SIZE)
     # model2.summary()
-    base_learning_rate = 0.0001
+    base_learning_rate = 0.001
     model2.compile(optimizer=tf.keras.optimizers.Adam(learning_rate=base_learning_rate),
                    loss='categorical_crossentropy',
                    metrics=['accuracy'])
@@ -47,7 +48,30 @@ def main():
     train_dataset = build_dataset.train_dataset
     validation_dataset = build_dataset.validation_dataset
     history = model2.fit(train_dataset, validation_data=validation_dataset, epochs=initial_epochs)
-    print(history.history)
+    # print(history.history)
+    acc = [0.] + history.history['accuracy']
+    val_acc = [0.] + history.history['val_accuracy']
+    loss = history.history['loss']
+    val_loss = history.history['val_loss']
+
+    plt.figure(figsize=(8, 8))
+    plt.subplot(2, 1, 1)
+    plt.plot(acc, label='Training Accuracy')
+    plt.plot(val_acc, label='Validation Accuracy')
+    plt.legend(loc='lower right')
+    plt.ylabel('Accuracy')
+    plt.ylim([min(plt.ylim()),1])
+    plt.title('Training and Validation Accuracy')
+
+    plt.subplot(2, 1, 2)
+    plt.plot(loss, label='Training Loss')
+    plt.plot(val_loss, label='Validation Loss')
+    plt.legend(loc='upper right')
+    plt.ylabel('Cross Entropy')
+    plt.ylim([0,1.0])
+    plt.title('Training and Validation Loss')
+    plt.xlabel('epoch')
+    plt.show()
 
 
 if __name__ == '__main__':
