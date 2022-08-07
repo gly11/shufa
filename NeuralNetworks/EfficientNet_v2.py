@@ -1,6 +1,6 @@
 import tensorflow as tf
 import keras
-import os
+# import os
 import build_dataset
 import local_utils
 
@@ -27,7 +27,7 @@ def mymodel(image_shape=IMG_SIZE):
 
     # build new layers
     x = keras.layers.GlobalAveragePooling2D()(x)
-    x = keras.layers.Dropout(0.2)(x)
+    x = keras.layers.Dropout(0.4)(x)
     outputs = keras.layers.Dense(neuron_numbers, activation='softmax')(x)  # neuron_numbers: hyper-parameter
     # outputs = x
     model = tf.keras.Model(inputs, outputs)
@@ -37,26 +37,41 @@ def mymodel(image_shape=IMG_SIZE):
 def main():
     model2 = mymodel(IMG_SIZE)
     # model2.summary()
-    base_learning_rate = 0.001
+    base_learning_rate = 0.010
+    initial_epochs = 30
+    train_dataset = build_dataset.train_dataset
+    validation_dataset = build_dataset.validation_dataset
     model2.compile(optimizer=tf.keras.optimizers.Adam(learning_rate=base_learning_rate),
                    loss='categorical_crossentropy',
                    metrics=['accuracy'])
-    initial_epochs = 20
-    train_dataset = build_dataset.train_dataset
-    validation_dataset = build_dataset.validation_dataset
 
-    checkpoint_path = f"{model_name}/cp.ckpt"
-    checkpoint_dir = os.path.dirname(checkpoint_path)
+    # checkpoint_path = f"{model_name}/cp.ckpt"
+    # checkpoint_dir = os.path.dirname(checkpoint_path)
 
-    # Create a callback that saves the model's weights
-    cp_callback = tf.keras.callbacks.ModelCheckpoint(filepath=checkpoint_path,
-                                                     verbose=1,
-                                                     save_weights_only=True,
-                                                     # save_freq=5 * build_dataset.BATCH_SIZE
-                                                     )
+    # # Create a callback that saves the model's weights
+    # checkpoint = keras.callbacks.ModelCheckpoint(filepath=checkpoint_path,
+    #                                              verbose=1,
+    #                                              save_weights_only=True)
+
+    # checkpoint
+    filepath = model_name + "/" + "weights-{epoch:02d}-{val_accuracy:.2f}.hdf5"
+    checkpoint = keras.callbacks.ModelCheckpoint(filepath, monitor='val_accuracy', verbose=1,
+                                                 save_best_only=True, mode='max')
+
+    reduce_lr = keras.callbacks.ReduceLROnPlateau(monitor='val_accuracy', factor=0.2, patience=1, mode='auto',
+                                                  verbose=1, min_lr=0.0001)
+
+    early_stop = keras.callbacks.EarlyStopping(monitor='val_accuracy', patience=2, verbose=1, mode='auto')
+
+    # TensorBoardcallback = keras.callbacks.TensorBoard(log_dir=f'./{model_name}/logs',
+    #                                                   histogram_freq=1, write_graph=True, write_grads=False,
+    #                                                   write_images=True, embeddings_freq=0, embeddings_layer_names=None,
+    #                                                   embeddings_metadata=None, embeddings_data=None,
+    #                                                   update_freq='epoch')
 
     history = model2.fit(train_dataset, validation_data=validation_dataset,
-                         epochs=initial_epochs, callbacks=[cp_callback])
+                         epochs=initial_epochs,
+                         callbacks=[checkpoint, reduce_lr, early_stop])
     # print(history.history)
     local_utils.plot(history, model_name, epoch=initial_epochs, lr=base_learning_rate)
 

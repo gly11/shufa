@@ -143,5 +143,7 @@ cython_debug/
 *.jpg
 *.ckpt.*
 checkpoint
+*.hdf5
+*.v2
 
 .idea/

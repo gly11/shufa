@@ -8,23 +8,24 @@ def plot(history, model_name, epoch, lr):
     loss = history.history['loss']
     val_loss = history.history['val_loss']
 
-    plt.figure(figsize=(8, 8))
+    # plt.figure(figsize=(8, 8))
     plt.subplot(2, 1, 1)
     plt.plot(acc, label='Training Accuracy')
     plt.plot(val_acc, label='Validation Accuracy')
     plt.legend(loc='lower right')
     plt.ylabel('Accuracy')
-    plt.ylim([min(plt.ylim()), 1])
     plt.title('Training and Validation Accuracy')
 
     plt.subplot(2, 1, 2)
     plt.plot(loss, label='Training Loss')
     plt.plot(val_loss, label='Validation Loss')
     plt.legend(loc='upper right')
-    plt.ylabel('Cross Entropy')
-    plt.ylim([0, 1.0])
+    plt.ylabel('Categorical Cross Entropy')
     plt.title('Training and Validation Loss')
     plt.xlabel('epoch')
+
     plt.suptitle(f"{model_name} with dataset:{build_dataset.dataset_name}, EPOCH = {epoch}, "
                  f"learning rate = {lr}")
     plt.show()
+
+    # 绘制训练 & 验证的准确率值

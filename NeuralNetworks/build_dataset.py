@@ -2,6 +2,7 @@ import tensorflow as tf
 from keras.utils import image_dataset_from_directory
 from glob import glob
 import utils
+import os
 
 
 # import matplotlib.pyplot as plt
@@ -14,7 +15,7 @@ IMG_SIZE = (X, X)
 root = utils.get_project_path()
 data_root = f"{root}/data/img_selected_30/"
 dataset_name = data_root.split("/")[-2]
-label_names = sorted(path.split('/')[-1] for path in glob(f"{data_root}*"))
+label_names = sorted( os.path.split(path)[-1] for path in glob(f"{data_root}*"))
 label_to_index = dict((name, index) for index, name in enumerate(label_names))
 color_mode = 'rgb'
 train_dataset = image_dataset_from_directory(data_root,
