@@ -141,5 +141,7 @@ cython_debug/
 *.zip
 *.pn
 *.jpg
+*.ckpt.*
+checkpoint
 
 .idea/
