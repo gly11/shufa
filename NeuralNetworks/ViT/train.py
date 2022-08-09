@@ -14,14 +14,15 @@ assert tf.version.VERSION >= "2.4.0", "version of tf must greater/equal than 2.4
 
 
 def main():
-    data_root = "D:/qk/DL/experiment/data/test"  # get data root path
+    data_root = "D:/qk/DL/experiment/data/img_selected_30"  #  注意： 此处改写为：数据集路径，也就是img_selected_30（得是224*224）的路径
 
     if not os.path.exists("./save_weights"):
         os.makedirs("./save_weights")
 
+    #此处为超参数
     batch_size = 8
     epochs = 10
-    num_classes = 5
+    num_classes = 342          #根据img_selected_30得出，应该不用改                    
     freeze_layers = True
     initial_lr = 0.001
     weight_decay = 1e-4
@@ -37,8 +38,7 @@ def main():
     model = create_model(num_classes=num_classes, has_logits=False)
     model.build((1, 224, 224, 3))
 
-    # 下载我提前转好的预训练权重
-    # 链接: https://pan.baidu.com/s/1ro-6bebc8zroYfupn-7jVQ  密码: s9d9
+    # 这里要预先把下载好的 权重 放在同一目录下    
     # load weights
     pre_weights_path = './ViT-B_16.h5'
     assert os.path.exists(pre_weights_path), "cannot find {}".format(pre_weights_path)

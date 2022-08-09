@@ -11,11 +11,11 @@ from vit_model import vit_base_patch16_224_in21k as create_model
 
 
 def main():
-    num_classes = 5
+    num_classes = 324   
     im_height = im_width = 224
 
     # load image
-    img_path = "../tulip.jpg"
+    img_path = "../tulip.jpg"     #数据集路径 
     assert os.path.exists(img_path), "file: '{}' dose not exist.".format(img_path)
     img = Image.open(img_path)
     # resize image
