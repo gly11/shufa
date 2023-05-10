@@ -39,8 +39,7 @@ def main():
     # model2.summary()
     base_learning_rate = 0.010
     initial_epochs = 30
-    train_dataset = build_dataset.train_dataset
-    validation_dataset = build_dataset.validation_dataset
+    train_dataset, validation_dataset = build_dataset.build_train_val()
     model2.compile(optimizer=tf.keras.optimizers.Adam(learning_rate=base_learning_rate),
                    loss='categorical_crossentropy',
                    metrics=['accuracy'])
@@ -73,6 +72,7 @@ def main():
                          epochs=initial_epochs,
                          callbacks=[checkpoint, reduce_lr, early_stop])
     # print(history.history)
+    model2.save('{}/model.h5'.format(model_name))
     local_utils.plot(history, model_name, epoch=initial_epochs, lr=base_learning_rate)
 
 

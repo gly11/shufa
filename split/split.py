@@ -1,7 +1,7 @@
 import cv2
 import numpy as np
 
-def split(t, input_pic = './test_col.png'):
+def split(t, input_pic = './4.jpeg'):
     # t: type:类型
     
     out_path = './output/'
@@ -9,8 +9,8 @@ def split(t, input_pic = './test_col.png'):
     img = cv2.imread(input_pic)
     img = cv2.cvtColor(img, cv2.COLOR_BGRA2GRAY)            # 灰度化
     cv2.threshold(img,128,255,cv2.THRESH_BINARY,img)        # 二值化
-    # cv2.imshow("img", img)                                  # 显示二值化结果
-    # cv2.waitKey(5000)                                       # 等待1秒
+    cv2.imshow("img", img)                                  # 显示二值化结果
+    cv2.waitKey(1000)                                       # 等待1秒
     data = np.array(img)
     len_x = data.shape[0]           # 纵向高度
     len_y = data.shape[1]           # 横向宽度

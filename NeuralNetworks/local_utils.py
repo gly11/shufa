@@ -8,7 +8,7 @@ def plot(history, model_name, epoch, lr):
     loss = history.history['loss']
     val_loss = history.history['val_loss']
 
-    # plt.figure(figsize=(8, 8))
+    plt.figure(figsize=(8, 8))
     plt.subplot(2, 1, 1)
     plt.plot(acc, label='Training Accuracy')
     plt.plot(val_acc, label='Validation Accuracy')
@@ -26,6 +26,8 @@ def plot(history, model_name, epoch, lr):
 
     plt.suptitle(f"{model_name} with dataset:{build_dataset.dataset_name}, EPOCH = {epoch}, "
                  f"learning rate = {lr}")
+    plt.savefig('{}/fig.png'.format(model_name), dpi=300, bbox_inches='tight')
+    plt.savefig('{}/fig.eps'.format(model_name))
     plt.show()
 
     # 绘制训练 & 验证的准确率值

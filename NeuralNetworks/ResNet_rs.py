@@ -39,8 +39,7 @@ def main():
     # model2.summary()
     base_learning_rate = 0.010
     initial_epochs = 30
-    train_dataset = build_dataset.train_dataset
-    validation_dataset = build_dataset.validation_dataset
+    train_dataset, validation_dataset = build_dataset.build_train_val()
     model2.compile(optimizer=tf.keras.optimizers.Adam(learning_rate=base_learning_rate),
                    loss='categorical_crossentropy',
                    metrics=['accuracy'])
@@ -62,7 +61,7 @@ def main():
     reduce_lr = keras.callbacks.ReduceLROnPlateau(monitor='val_accuracy', factor=0.2, patience=1, mode='auto',
                                                   verbose=1, min_lr=0.0001)
 
-    early_stop = keras.callbacks.EarlyStopping(monitor='val_accuracy', patience=5, verbose=1, mode='auto')
+    early_stop = keras.callbacks.EarlyStopping(monitor='val_accuracy', patience=2, verbose=1, mode='auto')
 
     # TensorBoardcallback = keras.callbacks.TensorBoard(log_dir=f'./{model_name}/logs',
     #                                                   histogram_freq=1, write_graph=True, write_grads=False,
@@ -74,6 +73,7 @@ def main():
                          epochs=initial_epochs,
                          callbacks=[checkpoint, reduce_lr, early_stop])
     # print(history.history)
+    model2.save('{}/model.h5'.format(model_name))
     local_utils.plot(history, model_name, epoch=initial_epochs, lr=base_learning_rate)
 
 
