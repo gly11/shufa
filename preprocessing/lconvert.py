@@ -5,7 +5,7 @@ from tqdm import tqdm
 import multiprocessing as mp
 
 
-def func(filename, odir, parent):
+def func(filename: str, odir:str, parent:str):
     # print(filename)
     try:
         if filename.split('.')[-1] == 'png':
@@ -57,6 +57,7 @@ def func(filename, odir, parent):
     except Exception as err:
         print(f'Error: {err}')
 
+
 def lconvert(root_dir, odir):
     # root_dir为原文件夹，odir为输出目录
     # 将黑底白字转换为白底黑字
@@ -69,7 +70,7 @@ def lconvert(root_dir, odir):
 
         n_cpu = mp.cpu_count()
         pool = mp.Pool(n_cpu-2)
-        for filename in filenames[:5000]:
+        for filename in filenames:
             pool.apply_async(func, args=(filename, odir, parent,), callback=update)
         pool.close()
         pool.join()
