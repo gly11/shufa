@@ -67,7 +67,8 @@ def lconvert(root_dir, odir):
         pbar = tqdm(total=len(filenames))
         update = lambda *args: pbar.update()
 
-        pool = mp.Pool()
+        n_cpu = mp.cpu_count()
+        pool = mp.Pool(n_cpu-2)
         for filename in filenames[:5000]:
             pool.apply_async(func, args=(filename, odir, parent,), callback=update)
         pool.close()
