@@ -2,11 +2,7 @@ import cv2
 import os
 import numpy as np
 from tqdm import tqdm
-# from tqdm.contrib.concurrent import process_map
-# import threading
 import multiprocessing as mp
-# from p_tqdm import p_map
-# from functools import partial
 
 
 def func(filename, odir, parent):
@@ -20,7 +16,6 @@ def func(filename, odir, parent):
             # print(f'{filename}: {src.shape}')
             if len(src.shape) == 2:
                 # 若为单通道图片
-                # print(filename)
                 img = np.expand_dims(src, axis=2)  # 维数拓展
                 img = np.repeat(img, 3, axis=2)  # 复制
                 # img[:,:,0] = img[:,:,:1] = img[:,:,2] = src
@@ -33,7 +28,6 @@ def func(filename, odir, parent):
             else:
                 # 3通道彩图
                 img = cv2.cvtColor(src, cv2.COLOR_BGR2GRAY)  # 进行灰度化，灰度化后将变为单通道
-                # print(f'{filename}:{src.shape}')
                 cv2.threshold(img, 128, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU, img)  # 进行二值化
                 x, y = img.shape  # 长宽
                 # img = cv2.GaussianBlur(img, (5, 5), 0)        # 高斯滤波去噪
@@ -54,13 +48,11 @@ def func(filename, odir, parent):
                 img = np.expand_dims(img, axis=2)
                 img = np.repeat(img, 3, axis=2)
 
-            # odir = "img_selected"               # 设定输出文件夹
             # 判断文件夹是否存在，若不存在则创建之
             if not os.path.exists(odir):
                 os.mkdir(odir)
             path = f'{odir}/{filename}'  # 保存地址
             cv2.imwrite(path, img)
-            # print(f"{path}已保存！")
 
     except Exception as err:
         print(f'Error: {err}')
@@ -72,13 +64,11 @@ def lconvert(root_dir, odir):
         # parent: 即rootdir(当前目录); filenames: 当前目录下的子文件夹列表; filenames: 当前目录下的文件列表
 
         # n_cpu = mp.cpu_count()
-        # myfun = partial(func, odir=odir, parent=parent)
         pbar = tqdm(total=len(filenames))
         update = lambda *args: pbar.update()
 
         pool = mp.Pool()
         for filename in filenames[:5000]:
-            # print(f'{filename}!')
             pool.apply_async(func, args=(filename, odir, parent,), callback=update)
         pool.close()
         pool.join()
