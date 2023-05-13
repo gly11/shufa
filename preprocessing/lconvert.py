@@ -63,8 +63,6 @@ def lconvert(root_dir, odir):
     # 将黑底白字转换为白底黑字
     for parent, dirnames, filenames in os.walk(root_dir):
         # parent: 即rootdir(当前目录); filenames: 当前目录下的子文件夹列表; filenames: 当前目录下的文件列表
-
-        # n_cpu = mp.cpu_count()
         pbar = tqdm(total=len(filenames))
         update = lambda *args: pbar.update()
 
