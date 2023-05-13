@@ -1,3 +1,4 @@
+# 将图片按照不同的字归入文件夹，并以该字命名文件夹
 import os
 from tqdm import tqdm
 import csv

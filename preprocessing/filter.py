@@ -1,4 +1,4 @@
-# 筛选出图片个数大于x的字
+# 筛选出图片个数大于x的字(须在分好文件夹后使用)
 import os
 import shutil
 from tqdm import tqdm
