@@ -14,22 +14,24 @@ def move_file(srcfile, dstpath):  # 移动函数
     # print("move %s -> %s" % (srcfile, dstpath + fname))
 
 
-def main():
-    root_dir = "../data/img_selected/"
-    with open("../data/csv_files/data.csv") as f:
+def restruct(root_dir):
+    with open("../data/csv_files/data.csv", encoding='utf-8') as f:
         reader = csv.reader(f)
         next(reader)
         dic = dict(reader)
-    filenames = glob.glob(f"{root_dir}*.png")
+    filenames = glob.glob(f"{root_dir}/*.png")
+    # print(filenames)
     for file in tqdm(filenames):
         try:
+            # print(file)
             num = file.split("/")[-1].split(".")[0]
+            num = num.split('\\')[-1]       # win平台下使用
             word = dic[num]
-            odir = f"{root_dir}{word}/"  # 设定输出文件夹
+            odir = f"{root_dir}/{word}/"  # 设定输出文件夹
             move_file(file, odir)
         except Exception as err:
-            print(err)
+            print(f'Error: {err}')
 
 
 if __name__ == "__main__":
-    main()
+    restruct(root_dir="../data/img_selected")
