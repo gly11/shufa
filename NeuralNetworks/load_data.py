@@ -5,6 +5,8 @@ import pandas as pd
 import matplotlib.pyplot as plt
 from collections import Counter
 strategy = tf.distribute.MirroredStrategy()
+options = tf.data.Options()
+options.experimental_distribute.auto_shard_policy = tf.data.experimental.AutoShardPolicy.FILE
 
 # root = utils.get_project_path()
 root = '../'
@@ -41,6 +43,7 @@ def load_img(path, label):
 
 
 img_label_ds = img_label_ds.shuffle(img_count, reshuffle_each_iteration=False, seed=42)
+img_label_ds = img_label_ds.with_options(options)
 val_size = int(img_count * 0.2)
 train_ds = img_label_ds.skip(val_size)
 val_ds = img_label_ds.take(val_size)

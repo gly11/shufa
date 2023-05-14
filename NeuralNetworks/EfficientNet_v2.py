@@ -16,6 +16,7 @@ IMG_SIZE = tuple(load_data.IMG_SIZE)
 neuron_numbers = load_data.class_num
 channels_dict = {'rgb': (3,), 'rgba': (4,), 'grayscale': (1,)}
 model_name = "EfficientNetV2S"
+unfrozen = -70
 
 
 def mymodel(image_shape=IMG_SIZE):
@@ -27,7 +28,7 @@ def mymodel(image_shape=IMG_SIZE):
     # base_model.trainable = False  # 冻结所有层
     # 冻结部分层
     # frozen_layer_number = 250
-    for layer in base_model.layers[:-5]:
+    for layer in base_model.layers[:unfrozen]:
         # 5层可训练
         layer.trainable = False
     inputs = tf.keras.Input(shape=input_shape)  # 创建输入层
@@ -48,8 +49,8 @@ def main():
         model2 = mymodel(IMG_SIZE)
     model2.summary()
 
-    base_learning_rate = 0.010
-    initial_epochs = 3
+    base_learning_rate = 1e-3
+    initial_epochs = 30
     # train_dataset, validation_dataset = build_dataset.build_train_val()
     train_dataset, validation_dataset = load_data.train_ds, load_data.val_ds
     model2.compile(optimizer=tf.keras.optimizers.Adam(learning_rate=base_learning_rate),
@@ -65,12 +66,12 @@ def main():
     #                                              save_weights_only=True)
 
     # checkpoint
-    filepath = model_name + "/" + "weights-{epoch:02d}-{val_accuracy:.2f}.hdf5"
+    filepath = model_name + "/" + "weights-{epoch:02d}-{val_accuracy:.2f}"+f"-{base_learning_rate}-{unfrozen}.hdf5"
     checkpoint = keras.callbacks.ModelCheckpoint(filepath, monitor='val_accuracy', verbose=1,
-                                                 save_best_only=True, mode='max')
+                                                 save_best_only=True, mode='max', save_weights_only=False)
 
     reduce_lr = keras.callbacks.ReduceLROnPlateau(monitor='val_accuracy', factor=0.2, patience=1, mode='auto',
-                                                  verbose=1, min_lr=0.0001)
+                                                  verbose=1, min_lr=1e-5)
 
     early_stop = keras.callbacks.EarlyStopping(monitor='val_accuracy', patience=2, verbose=1, mode='auto')
 
@@ -79,7 +80,7 @@ def main():
     #                                                   write_images=True, embeddings_freq=0, embeddings_layer_names=None,
     #                                                   embeddings_metadata=None, embeddings_data=None,
     #                                                   update_freq='epoch')
-
+    # model2.load_weights(f'./{model_name}/weights-04-0.61.hdf5')
     history = model2.fit(train_dataset, validation_data=validation_dataset,
                          epochs=initial_epochs,
                          callbacks=[checkpoint, reduce_lr, early_stop])
