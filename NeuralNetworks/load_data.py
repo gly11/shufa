@@ -1,11 +1,12 @@
 import tensorflow as tf
 # import numpy as np
 import pandas as pd
-import utils
+# import utils
 import matplotlib.pyplot as plt
 from collections import Counter
 
-root = utils.get_project_path()
+# root = utils.get_project_path()
+root = '../'
 img_root = f"{root}/data/img_out/"
 csv_path = f'{root}/data/csv_files'
 csv_file = f"{csv_path}/data_100_removed.csv"
