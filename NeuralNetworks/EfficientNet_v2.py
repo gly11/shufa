@@ -6,6 +6,7 @@ import sys
 import local_utils
 import load_data
 # from tensorflow.python.keras.utils.multi_gpu_utils import multi_gpu_model
+mirrored_strategy = tf.distribute.MirroredStrategy()
 sys.path.insert(0, sys.path[0] + "/../")
 
 preprocess_input = keras.applications.efficientnet_v2.preprocess_input
@@ -44,7 +45,7 @@ def mymodel(image_shape=IMG_SIZE):
 
 def main():
     model2 = mymodel(IMG_SIZE)
-    # model2.summary()
+    model2.summary()
 
     # n_GPUs = 4
     # model_M = multi_gpu_model(model2, n_GPUs)
