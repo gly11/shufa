@@ -11,6 +11,7 @@ csv_path = f'{root}/data/csv_files'
 csv_file = f"{csv_path}/data_100_removed.csv"
 channels = 3
 color_mode = 'rgb'
+dataset_name = img_root.split("/")[-1]
 
 IMG_SIZE = [128, 128]
 AUTOTUNE = tf.data.AUTOTUNE

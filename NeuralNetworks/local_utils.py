@@ -1,5 +1,7 @@
 import matplotlib.pyplot as plt
-import build_dataset
+# import build_dataset
+import load_data
+dataset_name = load_data.dataset_name
 
 
 def plot(history, model_name, epoch, lr):
@@ -24,7 +26,7 @@ def plot(history, model_name, epoch, lr):
     plt.title('Training and Validation Loss')
     plt.xlabel('epoch')
 
-    plt.suptitle(f"{model_name} with dataset:{build_dataset.dataset_name}, EPOCH = {epoch}, "
+    plt.suptitle(f"{model_name} with dataset:{dataset_name}, EPOCH = {epoch}, "
                  f"learning rate = {lr}")
     plt.savefig('{}/fig.png'.format(model_name), dpi=300, bbox_inches='tight')
     plt.savefig('{}/fig.eps'.format(model_name))
