@@ -3,9 +3,9 @@ import keras
 # import os
 # import build_dataset
 import sys
-sys.path.append("..") 
 import local_utils
 import load_data
+sys.path.insert(0, sys.path[0]+"/../")
 
 preprocess_input = keras.applications.resnet_rs.preprocess_input
 # IMG_SIZE = build_dataset.IMG_SIZE
