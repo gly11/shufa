@@ -1,7 +1,9 @@
+# 处理.pn问题文件的问题
 import pandas as pd
 from tqdm import tqdm
 
-from_csv = './data/csv_files/data_100.csv'
+
+from_csv = './data/csv_files/data_500.csv'
 df = pd.read_csv('./data/csv_files/raw_data.csv')
 df1 = pd.read_csv(from_csv)
 li = []
@@ -17,4 +19,5 @@ for index, row in tqdm(df1.iterrows()):
         except Exception as err:
             print(f'Error: {err} NO. {n}')
 
-df1.to_csv(f'{from_csv.split("/")[-1].split(".")[0]}_removed.csv', encoding='utf-8-sig', index=False)
+df1.to_csv(f'.{from_csv.split(".")[1]}_removed.csv', encoding='utf-8-sig', index=False)
+
