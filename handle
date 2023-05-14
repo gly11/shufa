@@ -1,0 +1,112 @@
+import pandas as pd
+df = pd.read_csv('./data/csv_files/raw_data.csv')
+df.URL
+0         http://img.hw175.com/ShuFaYanZi/font/1/d71f5d4...
+1         http://img.hw175.com/ShuFaYanZi/font/1/2d9a954...
+2         http://img.hw175.com/ShuFaYanZi/font/0/4edd3a8...
+3         http://img.hw175.com/ShuFaYanZi/font/1/32b8d98...
+4         http://img.hw175.com/ShuFaYanZi/font/1/d8c3015...
+                                ...
+762668    http://img.hw175.com/ShuFaYanZi/font/0/01bc2ad...
+762669    http://img.hw175.com/ShuFaYanZi/font/0/6770650...
+762670    http://img.hw175.com/ShuFaYanZi/font/0/c50707a...
+762671    http://img.hw175.com/ShuFaYanZi/font/0/aded951...
+762672    http://img.hw175.com/ShuFaYanZi/font/0/cdb921e...
+Name: URL, Length: 762673, dtype: object
+df.URL.str.split('.')[-1]
+Traceback (most recent call last):
+  File "C:\ProgramData\Anaconda3\envs\tf29\lib\site-packages\pandas\core\indexes\range.py", line 345, in get_loc
+    return self._range.index(new_key)
+ValueError: -1 is not in range
+The above exception was the direct cause of the following exception:
+Traceback (most recent call last):
+  File "C:\Users\admin\AppData\Local\JetBrains\Toolbox\apps\PyCharm-C\ch-0\231.8770.66\plugins\python-ce\helpers\pydev\pydevconsole.py", line 364, in runcode
+    coro = func()
+  File "<input>", line 1, in <module>
+  File "C:\ProgramData\Anaconda3\envs\tf29\lib\site-packages\pandas\core\series.py", line 1007, in __getitem__
+    return self._get_value(key)
+  File "C:\ProgramData\Anaconda3\envs\tf29\lib\site-packages\pandas\core\series.py", line 1116, in _get_value
+    loc = self.index.get_loc(label)
+  File "C:\ProgramData\Anaconda3\envs\tf29\lib\site-packages\pandas\core\indexes\range.py", line 347, in get_loc
+    raise KeyError(key) from err
+KeyError: -1
+df.URL.str.split('.')
+0         [http://img, hw175, com/ShuFaYanZi/font/1/d71f...
+1         [http://img, hw175, com/ShuFaYanZi/font/1/2d9a...
+2         [http://img, hw175, com/ShuFaYanZi/font/0/4edd...
+3         [http://img, hw175, com/ShuFaYanZi/font/1/32b8...
+4         [http://img, hw175, com/ShuFaYanZi/font/1/d8c3...
+                                ...
+762668    [http://img, hw175, com/ShuFaYanZi/font/0/01bc...
+762669    [http://img, hw175, com/ShuFaYanZi/font/0/6770...
+762670    [http://img, hw175, com/ShuFaYanZi/font/0/c507...
+762671    [http://img, hw175, com/ShuFaYanZi/font/0/aded...
+762672    [http://img, hw175, com/ShuFaYanZi/font/0/cdb9...
+Name: URL, Length: 762673, dtype: object
+df.URL.str.split('.')[:][-1]
+Traceback (most recent call last):
+  File "C:\ProgramData\Anaconda3\envs\tf29\lib\site-packages\pandas\core\indexes\range.py", line 345, in get_loc
+    return self._range.index(new_key)
+ValueError: -1 is not in range
+The above exception was the direct cause of the following exception:
+Traceback (most recent call last):
+  File "C:\Users\admin\AppData\Local\JetBrains\Toolbox\apps\PyCharm-C\ch-0\231.8770.66\plugins\python-ce\helpers\pydev\pydevconsole.py", line 364, in runcode
+    coro = func()
+  File "<input>", line 1, in <module>
+  File "C:\ProgramData\Anaconda3\envs\tf29\lib\site-packages\pandas\core\series.py", line 1007, in __getitem__
+    return self._get_value(key)
+  File "C:\ProgramData\Anaconda3\envs\tf29\lib\site-packages\pandas\core\series.py", line 1116, in _get_value
+    loc = self.index.get_loc(label)
+  File "C:\ProgramData\Anaconda3\envs\tf29\lib\site-packages\pandas\core\indexes\range.py", line 347, in get_loc
+    raise KeyError(key) from err
+KeyError: -1
+df1 = pd.read_csv('./data/csv_files/data_10.csv')
+df1
+           No. Word
+0            1    祂
+1            2    祂
+2            3    祂
+3            4    祂
+4            5    祂
+        ...  ...
+730041  762669    瑩
+730042  762670    瑩
+730043  762671    瑩
+730044  762672    瑩
+730045  762673    瑩
+[730046 rows x 2 columns]
+df
+           No. Word                                                URL Status
+0            1    祂  http://img.hw175.com/ShuFaYanZi/font/1/d71f5d4...      Y
+1            2    祂  http://img.hw175.com/ShuFaYanZi/font/1/2d9a954...      Y
+2            3    祂  http://img.hw175.com/ShuFaYanZi/font/0/4edd3a8...      Y
+3            4    祂  http://img.hw175.com/ShuFaYanZi/font/1/32b8d98...      Y
+4            5    祂  http://img.hw175.com/ShuFaYanZi/font/1/d8c3015...      Y
+        ...  ...                                                ...    ...
+762668  762669    瑩  http://img.hw175.com/ShuFaYanZi/font/0/01bc2ad...      Y
+762669  762670    瑩  http://img.hw175.com/ShuFaYanZi/font/0/6770650...      Y
+762670  762671    瑩  http://img.hw175.com/ShuFaYanZi/font/0/c50707a...      Y
+762671  762672    瑩  http://img.hw175.com/ShuFaYanZi/font/0/aded951...      Y
+762672  762673    瑩  http://img.hw175.com/ShuFaYanZi/font/0/cdb921e...      Y
+[762673 rows x 4 columns]
+for row in df.values:
+    if row['URL'].str.split('.')[-1] == 'pn':
+        print(row['No.'])
+
+Traceback (most recent call last):
+  File "C:\Users\admin\AppData\Local\JetBrains\Toolbox\apps\PyCharm-C\ch-0\231.8770.66\plugins\python-ce\helpers\pydev\pydevconsole.py", line 364, in runcode
+    coro = func()
+  File "<input>", line 2, in <module>
+IndexError: only integers, slices (`:`), ellipsis (`...`), numpy.newaxis (`None`) and integer or boolean arrays are valid indices
+for row in df.values:
+    if row[2].str.split('.')[-1] == 'pn':
+        print(row[0])
+
+Traceback (most recent call last):
+  File "C:\Users\admin\AppData\Local\JetBrains\Toolbox\apps\PyCharm-C\ch-0\231.8770.66\plugins\python-ce\helpers\pydev\pydevconsole.py", line 364, in runcode
+    coro = func()
+  File "<input>", line 2, in <module>
+AttributeError: 'str' object has no attribute 'str'
+for row in df.values:
+    if row[2].split('.')[-1] == 'pn':
+        print(row[0])

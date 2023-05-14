@@ -8,8 +8,9 @@ from collections import Counter
 root = utils.get_project_path()
 img_root = f"{root}/data/img_out/"
 csv_path = f'{root}/data/csv_files'
-csv_file = f"{csv_path}/data_100.csv"
+csv_file = f"{csv_path}/data_100_removed.csv"
 channels = 3
+color_mode = 'rgb'
 
 IMG_SIZE = [128, 128]
 AUTOTUNE = tf.data.AUTOTUNE
@@ -35,7 +36,7 @@ def load_img(path, label):
     return img, label
 
 
-img_label_ds = img_label_ds.shuffle(img_count, reshuffle_each_iteration=False)
+img_label_ds = img_label_ds.shuffle(img_count, reshuffle_each_iteration=False, seed=42)
 val_size = int(img_count * 0.2)
 train_ds = img_label_ds.skip(val_size)
 val_ds = img_label_ds.take(val_size)
@@ -47,10 +48,10 @@ val_ds = val_ds.map(load_img, num_parallel_calls=AUTOTUNE)
 print(f'train: {tf.data.experimental.cardinality(train_ds).numpy()}')
 print(f'val: {tf.data.experimental.cardinality(val_ds).numpy()}')
 
-for image, label in train_ds.take(1):
-    # print(image)
-    print("Image shape: ", image.numpy().shape)
-    print("Label: ", label.numpy())
+# for image, label in train_ds.take(1):
+#     # print(image)
+#     print("Image shape: ", image.numpy().shape)
+#     print("Label: ", label.numpy())
 
 
 def configure_for_performance(ds):
@@ -63,12 +64,12 @@ def configure_for_performance(ds):
 
 train_ds = configure_for_performance(train_ds)
 val_ds = configure_for_performance(val_ds)
-image_batch, label_batch = next(iter(train_ds))
 
-plt.figure(figsize=(10, 10))
-for i in range(9):
-    ax = plt.subplot(3, 3, i + 1)
-    plt.imshow(image_batch[i].numpy().astype("uint8"))
-    # label = label_batch[i]
-    # plt.title(class_names[label])
-    plt.axis("off")
+# image_batch, label_batch = next(iter(train_ds))
+# plt.figure(figsize=(10, 10))
+# for i in range(9):
+#     ax = plt.subplot(3, 3, i + 1)
+#     plt.imshow(image_batch[i].numpy().astype("uint16"))
+#     # label = label_batch[i]
+#     # plt.title(class_names[label])
+#     plt.axis("off")

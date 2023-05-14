@@ -3,16 +3,20 @@ import keras
 # import os
 import build_dataset
 import local_utils
+import load_data
 
 preprocess_input = keras.applications.resnet_rs.preprocess_input
-IMG_SIZE = build_dataset.IMG_SIZE
-neuron_numbers = len(build_dataset.label_names)
+# IMG_SIZE = build_dataset.IMG_SIZE
+# neuron_numbers = len(build_dataset.label_names)
+IMG_SIZE = tuple(load_data.IMG_SIZE)
+neuron_numbers = load_data.class_num
 channels_dict = {'rgb': (3,), 'rgba': (4,), 'grayscale': (1,)}
 model_name = "ResNetRS50"
 
 
 def mymodel(image_shape=IMG_SIZE):
-    input_shape = image_shape + channels_dict[build_dataset.color_mode]
+    # input_shape = image_shape + channels_dict[build_dataset.color_mode]
+    input_shape = image_shape + channels_dict[load_data.color_mode]
     base_model = keras.applications.resnet_rs.ResNetRS50(input_shape=input_shape,
                                                          include_top=False,
                                                          weights='imagenet')
@@ -36,10 +40,11 @@ def mymodel(image_shape=IMG_SIZE):
 
 def main():
     model2 = mymodel(IMG_SIZE)
-    # model2.summary()
+    model2.summary()
     base_learning_rate = 0.010
-    initial_epochs = 30
-    train_dataset, validation_dataset = build_dataset.build_train_val()
+    initial_epochs = 3
+    # train_dataset, validation_dataset = build_dataset.build_train_val()
+    train_dataset, validation_dataset = load_data.train_ds, load_data.val_ds
     model2.compile(optimizer=tf.keras.optimizers.Adam(learning_rate=base_learning_rate),
                    loss='categorical_crossentropy',
                    metrics=['accuracy'])
