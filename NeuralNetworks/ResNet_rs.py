@@ -2,6 +2,8 @@ import tensorflow as tf
 import keras
 # import os
 # import build_dataset
+import sys
+sys.path.append("..") 
 import local_utils
 import load_data
 
