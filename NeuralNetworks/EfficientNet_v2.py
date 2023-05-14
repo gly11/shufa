@@ -5,8 +5,8 @@ import keras
 import sys
 import local_utils
 import load_data
-# from tensorflow.python.keras.utils.multi_gpu_utils import multi_gpu_model
-mirrored_strategy = tf.distribute.MirroredStrategy()
+strategy = load_data.strategy
+print('Number of devices: {}'.format(strategy.num_replicas_in_sync))
 sys.path.insert(0, sys.path[0] + "/../")
 
 preprocess_input = keras.applications.efficientnet_v2.preprocess_input
@@ -44,12 +44,9 @@ def mymodel(image_shape=IMG_SIZE):
 
 
 def main():
-    model2 = mymodel(IMG_SIZE)
+    with strategy.scope():
+        model2 = mymodel(IMG_SIZE)
     model2.summary()
-
-    # n_GPUs = 4
-    # model_M = multi_gpu_model(model2, n_GPUs)
-    # model_M.summary()
 
     base_learning_rate = 0.010
     initial_epochs = 3
@@ -58,9 +55,6 @@ def main():
     model2.compile(optimizer=tf.keras.optimizers.Adam(learning_rate=base_learning_rate),
                    loss='categorical_crossentropy',
                    metrics=['accuracy'])
-    # model_M.compile(optimizer=tf.keras.optimizers.Adam(learning_rate=base_learning_rate),
-    #                 loss='categorical_crossentropy',
-    #                 metrics=['accuracy'])
 
     # checkpoint_path = f"{model_name}/cp.ckpt"
     # checkpoint_dir = os.path.dirname(checkpoint_path)
@@ -89,9 +83,6 @@ def main():
     history = model2.fit(train_dataset, validation_data=validation_dataset,
                          epochs=initial_epochs,
                          callbacks=[checkpoint, reduce_lr, early_stop])
-    # history = model_M.fit(train_dataset, validation_data=validation_dataset,
-    #                       epochs=initial_epochs,
-    #                       callbacks=[checkpoint, reduce_lr, early_stop])
     # print(history.history)
     model2.save('{}/model.h5'.format(model_name))
     local_utils.plot(history, model_name, epoch=initial_epochs, lr=base_learning_rate)

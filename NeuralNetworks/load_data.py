@@ -4,6 +4,7 @@ import pandas as pd
 # import utils
 import matplotlib.pyplot as plt
 from collections import Counter
+strategy = tf.distribute.MirroredStrategy()
 
 # root = utils.get_project_path()
 root = '../'
@@ -16,7 +17,8 @@ dataset_name = img_root.split("/")[-1]
 
 IMG_SIZE = [128, 128]
 AUTOTUNE = tf.data.AUTOTUNE
-BATCH_SIZE = 32
+BATCH_SIZE_PER_REPLICA = 32
+BATCH_SIZE = BATCH_SIZE_PER_REPLICA * strategy.num_replicas_in_sync
 
 df = pd.read_csv(csv_file, encoding='utf-8')
 index2label = dict(zip(df['No.'], df['Word']))
