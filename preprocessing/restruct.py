@@ -44,4 +44,4 @@ def restruct(root_dir):
 
 
 if __name__ == "__main__":
-    restruct(root_dir="../data/img_selected")
+    restruct(root_dir="../data/img_out")
