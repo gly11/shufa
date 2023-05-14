@@ -5,7 +5,7 @@ import keras
 import sys
 import local_utils
 import load_data
-from keras.utils import multi_gpu_model
+from tensorflow.python.keras.utils.multi_gpu_utils import multi_gpu_model
 sys.path.insert(0, sys.path[0]+"/../")
 
 preprocess_input = keras.applications.resnet_rs.preprocess_input
